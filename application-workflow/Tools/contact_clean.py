@@ -1,8 +1,7 @@
 # NOTE: application-workflow/Tools/contact_clean.py and publisher/Tools/contact_clean.py are separate copies so the two flows stay independent. If you change the cleaning rules or shared helpers in one, make the same change in the other.
 """One place that decides what a clean Recruiter Name / Recruiter Email / Recruiter Phone cell looks like.
 
-Used by build_rows.py (when a row is built), write_rows.py (last check before the cell is written), tracker_tool.py edit (refuses bad input)
-and tracker_tool.py check-contacts (finds bad cells already in the workbook). Pure functions, no file or network access.
+Used by tracker_tool.py edit (refuses bad input) and tracker_tool.py check-contacts (finds bad cells already in the workbook). Pure functions, no file or network access.
 
   python contact_clean.py --selftest      runs the built-in checks
 
@@ -14,7 +13,7 @@ Rules (each one comes from a real bad cell found in the 2026-10-29 review):
           away; if no name is left the result is empty and the caller writes the standard "Not in posting text" / "Not in scraped data" text.
   Phone : one phone number (optionally "Ext: n"), never an email address or other text.
 The standard placeholder texts ("Not publicly verified", "Not in posting text", "Not in scraped data - ...") are kept exactly as they are:
-Module 04 and the Apollo step look for those words.
+Module 04 looks for those words.
 """
 import re
 

@@ -25,11 +25,11 @@ Read commands (never change the file):
   skipped [--all] [--limit 50]   how many jobs are skipped (by me / automatic), then the ones skipped by me with their reasons
   check-contacts [--since JOB-####] [--limit 60]
                                  finds recruiter cells that hold description text, glued-on words (name@co.comPhone), notes inside the email cell,
-                                 a phone that is not a number, or a name that does not match the address. Module 01 runs it with --since <first new
-                                 Job ID> after write_rows.py. Prints the cell, the problem and the suggested value; changes nothing
+                                 a phone that is not a number, or a name that does not match the address. --since <Job ID> checks only that job and the
+                                 ones after it (for example the rows you just copied in). Prints the cell, the problem and the suggested value; changes nothing
   recheck-list [--days 14] [--status REVIEW,SHORTLIST,SELECTED,FOUND] [--limit 200]
                                  first prints how many jobs match (per portal), then up to --limit rows (Job ID, portal, URL,
-                                 status, Date Found) for Module 01 Stage 4; --limit 0 lists all
+                                 status, Date Found); lists tracked jobs worth re-checking; --limit 0 lists all
 
 Write commands (refuse to run while the workbook is open in Excel):
   set <JOB-####> [--set "Field=Value" ...] [--note "text"] [--confirmed-closed] [--email-drafted attached|none]
