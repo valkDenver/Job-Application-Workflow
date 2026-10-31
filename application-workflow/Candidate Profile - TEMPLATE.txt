@@ -1,0 +1,70 @@
+CANDIDATE PROFILE — TEMPLATE
+Fill this in once, save a copy with your name, and give it to Prompt 2 (Vendor Call Assistant) and Prompt 3 (Resume Generator).
+Everything here is treated as fact. Prompt 3 never changes your name, contact details, employers, titles, dates, or domains, so enter them exactly as you want them to appear on your resume.
+List employers with the MOST RECENT FIRST. Add or remove employer blocks as needed (the prompt supports any number; five is the usual maximum for a four-page resume).
+
+PERSONAL DETAILS
+Name: [Full name]
+Location: [City, State or Country as you want it printed]
+Phone: [Phone number]
+Email: [Email address]
+LinkedIn: [LinkedIn URL, or leave blank]
+Total experience: [For example: "Around 9 years across enterprise reporting, cloud infrastructure, ..." — a short sentence on your total years and the areas you have worked in. The Professional Summary uses this.]
+
+EMPLOYER 1 (most recent)
+Employer / client name: [Name]
+Job title: [Exact title]
+Dates: [For example: Jan 2025 - Present]
+Domain: [A few words, for example: Media & Entertainment / Digital Content / Data Transformation]
+Domain guidance: [List the areas this employer's experience should feel appropriate for, one per line or separated by commas. The prompt uses whichever areas are relevant to each job description.]
+Seniority notes: [How senior this role was. Add any limits, for example: "Do not inflate this role into Lead, Principal, Staff, or Architect-level ownership."]
+
+EMPLOYER 2
+Employer / client name:
+Job title:
+Dates:
+Domain:
+Domain guidance:
+Seniority notes:
+
+EMPLOYER 3
+Employer / client name:
+Job title:
+Dates:
+Domain:
+Domain guidance:
+Seniority notes:
+
+EMPLOYER 4
+Employer / client name:
+Job title:
+Dates:
+Domain:
+Domain guidance:
+Seniority notes:
+
+EMPLOYER 5 (earliest)
+Employer / client name:
+Job title:
+Dates:
+Domain:
+Domain guidance:
+Seniority notes: [For the earliest role, say it must remain an earlier-career position.]
+
+OPTIONAL (only if you want them on the resume; Prompt 3 never invents these)
+Education:
+Certifications:
+
+VENDOR CALL FACTS (used by Prompt 2 for the vendor-call step; never printed on the resume)
+Answer these exactly as you want them said to a vendor or recruiter. Anything left blank is treated as unknown, and the assistant will say it will confirm by email instead of guessing.
+Work authorization: [For example: OPT EAD / H-1B / GC EAD / US citizen / green card]
+Engagement type you accept: [For example: C2C, 1099, W2]
+Rate expectation: [For example: "$55 to $60 per hour on C2C" and the lowest you will accept]
+Availability / start date: [For example: "Two weeks after an offer" or a date]
+Notice period: [For example: 2 weeks]
+Current location: [City, State]
+Relocation / travel: [For example: "Open to relocate" / "Remote only" / "Local to Dallas, TX only"]
+Work arrangement preference: [Remote / Hybrid / Onsite, and any limits]
+Current employment status: [For example: "Currently on a contract ending in December" / "Between projects"]
+Interview availability: [Best days and times, time zone]
+Anything else vendors ask you: [For example: references available, background check consent, clearance]

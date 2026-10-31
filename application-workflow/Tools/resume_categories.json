@@ -1,0 +1,227 @@
+{
+  "technologies": {
+    "DevOps": {
+      "hints": [
+        "Ansible",
+        "Terraform",
+        "Jenkins",
+        "Kubernetes",
+        "Docker",
+        "CI/CD",
+        "Puppet",
+        "Chef"
+      ],
+      "specialties": [
+        "Automation",
+        "CI-CD",
+        "Cloud-Infra"
+      ]
+    },
+    "AWS": {
+      "hints": [
+        "AWS",
+        "Lambda",
+        "S3",
+        "EC2",
+        "DynamoDB"
+      ],
+      "specialties": []
+    },
+    "Azure": {
+      "hints": [
+        "Azure",
+        "Azure DevOps",
+        "Functions"
+      ],
+      "specialties": []
+    },
+    "GCP": {
+      "hints": [
+        "GCP",
+        "BigQuery",
+        "Cloud Run",
+        "Pub/Sub"
+      ],
+      "specialties": []
+    },
+    "Java": {
+      "hints": [
+        "Java",
+        "Spring Boot",
+        "Hibernate",
+        "Microservices"
+      ],
+      "specialties": [
+        "Backend",
+        "Frontend",
+        "Full Stack"
+      ]
+    },
+    ".NET": {
+      "hints": [
+        ".NET",
+        "C#",
+        "ASP.NET"
+      ],
+      "specialties": []
+    },
+    "Python": {
+      "hints": [
+        "Python",
+        "Django",
+        "Flask",
+        "FastAPI"
+      ],
+      "specialties": []
+    },
+    "Scala": {
+      "hints": [
+        "Scala",
+        "Spark",
+        "Akka"
+      ],
+      "specialties": []
+    },
+    "Angular": {
+      "hints": [
+        "Angular",
+        "RxJS",
+        "TypeScript"
+      ],
+      "specialties": []
+    },
+    "React": {
+      "hints": [
+        "React",
+        "Redux",
+        "Next.js"
+      ],
+      "specialties": []
+    },
+    "Node": {
+      "hints": [
+        "Node.js",
+        "Express",
+        "NestJS"
+      ],
+      "specialties": []
+    },
+    "Android": {
+      "hints": [
+        "Android",
+        "Kotlin"
+      ],
+      "specialties": []
+    },
+    "React Native": {
+      "hints": [
+        "React Native",
+        "mobile"
+      ],
+      "specialties": []
+    },
+    "API": {
+      "hints": [
+        "REST API",
+        "GraphQL",
+        "API Gateway",
+        "Integration"
+      ],
+      "specialties": []
+    },
+    "Data Engineering": {
+      "hints": [
+        "ETL",
+        "Airflow",
+        "Snowflake",
+        "Databricks",
+        "Kafka"
+      ],
+      "specialties": []
+    },
+    "AI-ML": {
+      "hints": [
+        "Machine Learning",
+        "LLM",
+        "Bedrock",
+        "MLOps"
+      ],
+      "specialties": []
+    },
+    "IAM": {
+      "hints": [
+        "IAM",
+        "Okta",
+        "SailPoint",
+        "Active Directory",
+        "SSO"
+      ],
+      "specialties": []
+    },
+    "IDR": {
+      "hints": [
+        "Incident Detection",
+        "Security Monitoring",
+        "SIEM"
+      ],
+      "specialties": []
+    },
+    "ServiceNow": {
+      "hints": [
+        "ServiceNow",
+        "ITSM"
+      ],
+      "specialties": []
+    },
+    "Workday": {
+      "hints": [
+        "Workday"
+      ],
+      "specialties": [
+        "Finance",
+        "HCM",
+        "Integration",
+        "Functional"
+      ]
+    },
+    "Salesforce": {
+      "hints": [
+        "Salesforce",
+        "Apex",
+        "Lightning"
+      ],
+      "specialties": []
+    },
+    "QA-Test Automation": {
+      "hints": [
+        "Selenium",
+        "Cypress",
+        "Test Automation",
+        "QA"
+      ],
+      "specialties": []
+    },
+    "Architect": {
+      "hints": [
+        "Solution Architect",
+        "Enterprise Architect",
+        "Technical Architect"
+      ],
+      "specialties": []
+    },
+    "Unqork": {
+      "hints": [
+        "Unqork",
+        "low-code"
+      ],
+      "specialties": []
+    },
+    "Alfresco": {
+      "hints": [
+        "Alfresco",
+        "ECM"
+      ],
+      "specialties": []
+    }
+  }
+}

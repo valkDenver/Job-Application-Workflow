@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+
+# Created while using the workflow (personal data: never commit)
+tracker_path.txt
+*.seen.json
+*.bak-*.xlsx
+apollo_cache.json
+employer_tools_cache.json
+Resumes/
+# Any spreadsheet, Word file or CSV is assumed to hold personal data, except the blank tracker template
+*.xlsx
+!Master Job Tracker - TEMPLATE.xlsx
+*.docx
+*.csv
+.trk_*
+Candidate Profile*.txt
+!Candidate Profile - TEMPLATE.txt
+~$*
+
+# Local planning notes (not part of the repo)
+plans/
+work_*/
+
+# Job-search (Module 01) and shared-feed publishing: kept local, not shared with candidates
+publisher/
+designs/
