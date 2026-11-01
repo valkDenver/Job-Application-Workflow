@@ -1,0 +1,42 @@
+<!-- Hand-written fixture (never saved from a real Dice page): the Apply wizard as described in design section 2, as one small page.
+     {{QUESTION}}, {{INITIAL}} (the resume the card shows first) and {{UPLOAD}} (whether the upload works) are set by the test. -->
+<html><head><title>Apply | Dice.com</title></head>
+<body>
+<header><button aria-label="Open profile menu">PE</button></header>
+<main id="app"></main>
+<input type="file" id="cover" style="display:none">
+<input type="file" id="resumefile" style="display:none">
+<script>
+  let resumeName = {{INITIAL}}, step = 0;
+  const uploadWorks = {{UPLOAD}};
+  const hasQuestion = {{QUESTION}};
+  const app = document.getElementById("app");
+  function render() {
+    if (step === 0) {
+      app.innerHTML = `<h2>Resume & Cover Letter</h2>
+        <div class="card"><span id="rname">${resumeName}</span> <span id="newtag"></span>
+        <button aria-label="File options" id="opts">…</button>
+        <div role="menu" id="menu" hidden><div role="menuitem" id="replace">Replace</div><div role="menuitem">Delete</div></div></div>
+        <p>Cover letter (optional)</p><button id="next">Next</button>`;
+      document.getElementById("opts").onclick = () => { document.getElementById("menu").hidden = false; };
+      document.getElementById("replace").onclick = () => document.getElementById("resumefile").click();
+      document.getElementById("next").onclick = () => { step = hasQuestion ? 1 : 2; render(); };
+    } else if (step === 1) {
+      app.innerHTML = `<h2>Questions</h2><label for="rate">Expected hourly rate?</label><input id="rate" required>
+        <fieldset><legend>Willing to relocate?</legend><input type="radio" name="rel" id="ry" value="Yes"><label for="ry">Yes</label>
+        <input type="radio" name="rel" id="rn" value="No"><label for="rn">No</label></fieldset><button id="next">Next</button>`;
+      document.getElementById("next").onclick = () => { if (document.getElementById("rate").value) { step = 2; render(); } };
+    } else {
+      app.innerHTML = `<h2>Review your application</h2><p>Resume: ${resumeName}</p><p>Work Authorization: US Citizen</p>
+        <p>Current Location: Denver, CO</p><button id="back">Back</button><button id="submit">Submit</button>`;
+      document.getElementById("submit").onclick = () => { location.href = location.pathname + "/success"; };
+    }
+  }
+  document.getElementById("resumefile").onchange = (e) => {
+    if (!uploadWorks) return;  // a silent upload failure: the card keeps whatever it showed
+    resumeName = e.target.files[0].name; render();
+    document.getElementById("newtag").textContent = "New file";
+  };
+  render();
+</script>
+</body></html>

@@ -11,7 +11,7 @@ Three prompts work in sequence on one Excel tracker, and the jobs come from a sh
 | Module 03 | Resume | `3 - Resume Generator.txt` |
 | Module 04 | Recruiter email and follow-ups | `4 - Recruiter Follow-up Email.txt` |
 
-There is no Module 01 here: the job search is run by the person who publishes the feed. Nothing is sent or applied to automatically; you review and send everything.
+There is no Module 01 here: the job search is run by the person who publishes the feed. Nothing is sent or applied to automatically; you review and send everything. (Optional: to apply to Dice jobs automatically in rounds you approve, see [`../dice-auto-apply/README.md`](../dice-auto-apply/README.md).)
 
 ## Quick path
 

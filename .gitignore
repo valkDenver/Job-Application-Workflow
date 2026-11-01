@@ -19,6 +19,10 @@ Candidate Profile*.txt
 !Candidate Profile - TEMPLATE.txt
 ~$*
 
+# Dice Auto Apply: test copies of the tracker, test resumes, launcher scratch files
+dice-auto-apply/Tools/testdata/
+dice-auto-apply/.pasted_line.txt
+
 # Local planning notes (not part of the repo)
 plans/
 work_*/
