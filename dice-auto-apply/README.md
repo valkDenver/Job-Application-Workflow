@@ -6,7 +6,7 @@ This folder is separate from `application-workflow/`. The two share only your tr
 
 ## What it does
 
-- **It only applies to jobs that have a resume.** A job qualifies when its **Resume Path** (preferred) or **Resume Filename** is filled. Resume Path should be the full path of the file on your computer. When it isn't usable, the script searches your Resumes folder by the Resume Filename.
+- **It only applies to jobs that have a resume.** A job qualifies when its **Resume Path** (preferred) or **Resume Filename** is filled. Resume Path is the folder that holds the resume on your computer (Module 03 fills it); the file in it named like the Resume Filename is used. A full file path also works. When it isn't usable, the script searches your Resumes folder by the Resume Filename.
 - **It never applies to:**
   - a job already APPLIED, FOLLOW-UP, CLOSED or SKIPPED
   - a job whose resume you already emailed to the recruiter (Module 04, "resume attached")
