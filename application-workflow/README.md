@@ -11,7 +11,7 @@ Three prompts work in sequence on one Excel tracker, and the jobs come from a sh
 | Module 03 | Resume | `3 - Resume Generator.txt` |
 | Module 04 | Recruiter email and follow-ups | `4 - Recruiter Follow-up Email.txt` |
 
-There is no Module 01 here: the job search is run by the person who publishes the feed. Nothing is sent or applied to automatically; you review and send everything.
+There is no Module 01 here: the job search is run by the person who publishes the feed. Nothing is sent or applied to automatically; you review and send everything. (Optional: to apply to Dice jobs automatically in rounds you approve, see [`../dice-auto-apply/README.md`](../dice-auto-apply/README.md).)
 
 ## Quick path
 
@@ -56,7 +56,7 @@ Good to know:
 - Resumes are saved as `Documents/Job Application Workflow/Resumes/<Technology>/<Specialty>/<JOB-#### - Client (via Staffing company)>/<Name>_<Position title>.docx`, the same way on Windows and Mac.
 - Industry-fit check: before writing anything it checks that at least one of your employers' industries can realistically use the job's core tools. If none can, it stops and records "Resume not generated" in the tracker Notes instead of inventing experience.
 - Heads-up check: before it creates a new resume it looks for earlier resumes made for the same recruiter or staffing company. A different technology gets a one-time warning; a similar role offers to update that resume instead.
-- It ends with a line `RESUME PATH: <full path or link>`. Copy it, open the job in the viewer, press Paste next to Resume path, then Save. The prompts never write the Resume Path column themselves.
+- It records the resume in the tracker: Resume Filename, Resume Path (the full path of the saved file) and RESUME CREATED. It also ends with a line `RESUME PATH: <full path or link>`; if the tracker update could not run (for example the tracker was open in Excel), copy that line, open the job in the viewer, press Paste next to Resume path, then Save.
 
 **Email (Module 04)**: `Run Module 04 for JOB-1014.` [attach the tracker and your Candidate Profile]. It asks what happened with the recruiter and writes a different email for each case. The resume is attached only after you have actually reached the recruiter.
 1. Called and they picked up: call follow-up email, resume attached.
@@ -93,7 +93,7 @@ Double-click `Start Tracker Viewer.bat` (Mac: `Start Tracker Viewer.command`; if
 
 - The Master Tracker is the single source of truth. Every job has one permanent Job ID (JOB-0001...; feed jobs are JOB-1001 and up). Never change or reuse an ID.
 - Pipeline Status moves forward only: REVIEW > SHORTLIST (optional) > CALL READY > VENDOR CALLED > RESUME NEEDED > RESUME CREATED > EMAIL DRAFTED > APPLIED > FOLLOW-UP > CLOSED (SKIPPED = dropped). Modules 02 to 04 never move it backward and ask before working on a SKIPPED or CLOSED job.
-- Resume Path is filled in by the user only; no module writes to it.
+- Resume Path holds the full path of the job's resume. Module 03 fills it when it records the resume (`tracker_tool.py set` checks the file exists, or finds it in the job's folder); the user can change it in the viewer. No other module writes to it.
 - Module 02 reads the description and logs the call date and what was claimed on the call. Module 03 reads the description and the call notes and writes the Resume Filename. Module 04 reads the recruiter email and phone, and (for cases 1 and 4 only) the resume filename, asks which of its four situations applies, and creates the draft.
 - If a prompt asks for something that is missing (Job ID, tracker, profile, a recruiter email), ask the user; never guess or invent it. Obey each module's "must NOT" list: never send email, never apply to jobs, never invent contact details, pay, work authorization or experience.
 - If you cannot read or write .xlsx files, say so and use CSV files with the same column names as the Master Tracker sheet.

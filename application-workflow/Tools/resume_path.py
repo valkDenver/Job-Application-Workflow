@@ -17,10 +17,11 @@ Commands:
                                  If that exact file already exists in the job folder, nothing is overwritten: the command lists the
                                  files already there and exits with code 3 so you can choose a different title/name (for example one that
                                  reflects the new tool set) and run it again.
-  list --tech T [--specialty S] [--limit 10]
+  list --tech T [--specialty S] [--new] [--limit 10]
                                  the resumes already saved in that technology folder (with --specialty: only that specialty's folder;
                                  without it: the whole technology folder, specialties included), newest first, at most --limit of them
                                  (the total is always shown). Creates the folder when missing. Prints path, size and date for each .docx.
+                                 An unknown technology is refused (with the closest names) unless --new is given, as for path.
                                  Module 03 uses it for the library check.
   reuse --source FILE --tech T [--specialty S] [--job JOB-#### --tracker FILE] [--new]
                                  copies an existing resume (the library check found it good enough) into this job's folder, built the
@@ -345,19 +346,28 @@ def cmd_reuse(a):
     return 0
 
 
-def cmd_find(a):
-    jid = a.job.strip().upper()
+def find_resumes(job, filename=None):
+    """Full paths of the .docx files in the job folders of that Job ID (only the one named filename when given). tracker_tool uses it
+    to fill Resume Path when Module 03 records a Resume Filename."""
+    jid = job.strip().upper()
     root = resumes_root()
-    if not os.path.isdir(root):
-        raise Refused(f"No Resumes folder yet: {root}")
     hits = []
     for dp, dirs, files in os.walk(root):
         base = os.path.basename(dp).upper()
         if base == jid or base.startswith(jid + " "):
             for f in files:
                 if f.lower().endswith(".docx") and not f.startswith("~$"):
-                    if not a.filename or key(f) == key(a.filename):
+                    if not filename or key(f) == key(filename):
                         hits.append(os.path.join(dp, f))
+    return sorted(hits)
+
+
+def cmd_find(a):
+    jid = a.job.strip().upper()
+    root = resumes_root()
+    if not os.path.isdir(root):
+        raise Refused(f"No Resumes folder yet: {root}")
+    hits = find_resumes(jid, a.filename)
     if not hits:
         raise Refused(f"No resume found for {jid}" + (f" named {a.filename}" if a.filename else "") + f" under {root}")
     for h in sorted(hits):

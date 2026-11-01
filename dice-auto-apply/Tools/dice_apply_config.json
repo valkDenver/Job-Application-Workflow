@@ -1,0 +1,25 @@
+{
+  "max_submits_per_day": 200,
+  "max_per_round": null,
+  "max_wizard_opens_per_day": null,
+  "active_days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  "active_hours": ["08:00", "16:00"],
+  "default_pace": "normal",
+  "paces": {
+    "brisk":   {"gap_median": 60,  "gap_min": 35, "gap_max": 180, "break_every": [25, 40], "break_min": [4, 10]},
+    "normal":  {"gap_median": 90,  "gap_min": 45, "gap_max": 300, "break_every": [20, 35], "break_min": [5, 15]},
+    "relaxed": {"gap_median": 150, "gap_min": 75, "gap_max": 420, "break_every": [8, 15],  "break_min": [8, 20]}
+  },
+  "job_page_dwell_sec": [6, 20],
+  "delay_between_actions_ms": {"median": 900, "min": 400, "max": 3000},
+  "typing_ms": [60, 180],
+  "work_sec_per_job": 45,
+  "cooldown_hours": 48,
+  "stuck_timeout_sec": 15,
+  "job_timeout_sec": 180,
+  "slow_load_sec": 10,
+  "tracker_batch_size": 5,
+  "max_resume_mb": 2,
+  "resumes_root": null,
+  "runtime_dir": null
+}
