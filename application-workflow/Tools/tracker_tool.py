@@ -33,7 +33,10 @@ Read commands (never change the file):
 
 Write commands (refuse to run while the workbook is open in Excel):
   set <JOB-####> [--set "Field=Value" ...] [--note "text"] [--confirmed-closed] [--email-drafted attached|none]
-                                 only these fields can be set: Pipeline Status, Vendor Call Date, Resume Filename, Follow-Up Date.
+                                 only these fields can be set: Pipeline Status, Vendor Call Date, Resume Filename, Resume Path,
+                                 Follow-Up Date. Resume Path must be the full path of an existing file named like the Resume Filename
+                                 (or a link); when only Resume Filename is given, the file is looked up in that job's folder under
+                                 Documents/Job Application Workflow/Resumes and Resume Path is filled with it. A replaced path is noted.
                                  --note appends a paragraph to Notes (existing Notes are never replaced).
                                  --email-drafted records the draft: Email Drafted Date = today plus "(resume attached)" or "(no resume)".
                                  Module 04 passes it with Pipeline Status=EMAIL DRAFTED; the date is written even when the status
@@ -74,7 +77,7 @@ import contact_clean as cc
 MASTER, JDS, EXCL = "Master Tracker", "JD Store", "Excluded Jobs"
 RANK = {"FOUND": 0, "REVIEW": 0, "SELECTED": 1, "SHORTLIST": 1, "CALL READY": 2, "VENDOR CALLED": 3, "RESUME NEEDED": 4,
         "RESUME CREATED": 5, "EMAIL DRAFTED": 6, "APPLIED": 7, "FOLLOW-UP": 8, "CLOSED": 9}  # SKIPPED is handled separately
-SETTABLE = ["Pipeline Status", "Vendor Call Date", "Resume Filename", "Follow-Up Date"]
+SETTABLE = ["Pipeline Status", "Vendor Call Date", "Resume Filename", "Resume Path", "Follow-Up Date"]
 EMAIL_COL = "Email Drafted Date"
 MILESTONE_FIELDS = ("Vendor Call Date", "Email Drafted Date", "Resume Filename", "Resume Path")
 
@@ -584,25 +587,32 @@ def cmd_set(a):
                 report.append(f"Pipeline Status kept at {cur} (setting {new} would move it backward)")
                 continue
             changes[f] = new
-    if not changes and not a.note and not want_email:
+    notes = []
+    if "Resume Path" in changes or changes.get("Resume Filename"):
+        notes += resume_path_change(ws, hm, r, want, changes, report)
+    if a.note:
+        notes.append(a.note.strip())
+    if not changes and not notes and not want_email:
         out(f"{want}: no change needed (" + "; ".join(report) + "). File not saved.")
         return
     for f, v in changes.items():
         c = need(hm, f, MASTER) + 1
         ws.cell(r, c).value = v
+        if f == "Resume Path":
+            ws.cell(r, c).hyperlink = v if re.match(r"^https?://", v, re.I) else None
         report.append(f"{f} = {v}")
     email_val = None
     if want_email:
         email_val = dt.date.today().isoformat() + {"attached": " (resume attached)", "none": " (no resume)"}.get(email_flag, "")
         ws.cell(r, need(hm, EMAIL_COL, MASTER) + 1).value = email_val
         report.append(f"{EMAIL_COL} = {email_val}")
-    note_before = None
-    if a.note:
+    note_before, note_text = None, "\n\n".join(notes)
+    if note_text:
         nc = need(hm, "Notes", MASTER) + 1
         old = text(ws.cell(r, nc).value)
         note_before = old
-        ws.cell(r, nc).value = (old + "\n\n" if old else "") + a.note.strip()
-        report.append("Notes: appended " + str(len(a.note.strip())) + " characters")
+        ws.cell(r, nc).value = (old + "\n\n" if old else "") + note_text
+        report.append("Notes: appended " + str(len(note_text)) + " characters")
     save_atomic(wb, a.tracker)
     # read back to confirm
     chk = track(openpyxl.load_workbook(a.tracker, read_only=True, data_only=False))
@@ -613,11 +623,52 @@ def cmd_set(a):
             raise Refused(f"Read-back check failed for {f}. Check the file before continuing.")
     if email_val is not None and text(row[need(hm, EMAIL_COL, MASTER)]) != email_val:
         raise Refused(f"Read-back check failed for {EMAIL_COL}. Check the file before continuing.")
-    if a.note:
+    if note_text:
         got = text(row[need(hm, "Notes", MASTER)])
-        if not got.startswith(note_before) or not got.endswith(a.note.strip()):
+        if not got.startswith(note_before) or not got.endswith(note_text):
             raise Refused("Read-back check failed for Notes. Check the file before continuing.")
     out(f"{want} updated: " + "; ".join(report))
+
+
+def clean_resume_path(v, filename):
+    """The value Module 03 gives for Resume Path -> the path to store. Accepts the whole 'RESUME PATH: ...' line and quotes around it.
+    A local path must be absolute and point to an existing file whose name is the job's Resume Filename; a link is kept as it is."""
+    v = re.sub(r"^\s*RESUME PATH:\s*", "", v, flags=re.I).strip().strip('"').strip("'").strip()
+    if re.match(r"^https?://", v, re.I):
+        return v
+    if not os.path.isabs(v):
+        raise Refused(f"Resume Path must be the full path of the saved file (got: {v}). Nothing was changed.")
+    if not os.path.isfile(v):
+        raise Refused(f"No file at the Resume Path: {v}. Save the resume first, then repeat. Nothing was changed.")
+    if filename and os.path.basename(v).lower() != filename.strip().lower():
+        raise Refused(f"Resume Path points to {os.path.basename(v)}, but the Resume Filename is {filename}. Nothing was changed.")
+    return os.path.normpath(v)
+
+
+def resume_path_change(ws, hm, r, job, changes, report):
+    """Fill Resume Path whenever a resume is recorded. A given path is checked; with only a Resume Filename, the file is looked up in the
+    job's folder under Documents/Job Application Workflow/Resumes (resume_path.py find). Returns the Notes lines to add."""
+    filename = changes.get("Resume Filename") or text(ws.cell(r, need(hm, "Resume Filename", MASTER) + 1).value)
+    col = hm.get(norm("Resume Path"))
+    old = text(ws.cell(r, col + 1).value) if col is not None else ""
+    if "Resume Path" in changes:
+        changes["Resume Path"] = clean_resume_path(changes["Resume Path"], filename)
+    elif col is None:
+        report.append("Resume Path not filled: the tracker has no Resume Path column")
+        return []
+    else:
+        import resume_path
+        hits = resume_path.find_resumes(job, filename)
+        if len(hits) != 1:
+            report.append(f"Resume Path not filled: {len(hits) or 'no'} file(s) named {filename} in the {job} folders under "
+                          f"{resume_path.resumes_root()}; give it with --set \"Resume Path=<full path>\"")
+            return []
+        changes["Resume Path"] = hits[0]
+    if changes["Resume Path"] == old:
+        del changes["Resume Path"]
+        report.append("Resume Path already set")
+        return []
+    return [f"{dt.date.today().isoformat()}: Resume Path replaced (was {old})"] if old else []
 
 
 def cmd_prune_excluded(a):
