@@ -49,6 +49,7 @@ class FlowMock(unittest.TestCase):
         self.s = HeadlessSession(CFG, d / "rt", d).open()
         self.s.ctx.route(re.compile(r"https://([a-z0-9-]+\.)*dice\.com/.*"), self.serve)
         self.s.ctx.route(re.compile(r"https://careers\.example\.com/.*"), lambda r: r.fulfill(body="<h1>Careers</h1>", content_type="text/html"))
+        self.s.ctx.route(re.compile(r"https://www\.google\.com/recaptcha/.*"), lambda r: r.fulfill(body="<div>frame</div>", content_type="text/html"))
 
     def tearDown(self):
         self.s.close()
@@ -67,7 +68,15 @@ class FlowMock(unittest.TestCase):
             elif m["job"] == "gone":
                 body = "<h1>Workday HCM</h1><p>This job is no longer available.</p>"
             else:
+                if m["job"] == "refreshing":  # logged out on the first load only, as Dice does while it refreshes the session
+                    m["job"] = "apply"
+                    m["refreshes"] = m.get("refreshes", 0) + 1
+                    route.fulfill(status=200, body='<a href="/login">Log in</a>', content_type="text/html")
+                    return
+                hidden = '<iframe src="https://www.google.com/recaptcha/api2/aframe" width="0" height="0" style="display:none"></iframe>'
+                challenge = '<iframe src="https://www.google.com/recaptcha/api2/bframe?k=1" width="400" height="580"></iframe>'
                 btn = {"apply": APPLY_BTN.format(g=self.g), "external": EXTERNAL_BTN, "applied": "<span>Applied</span>",
+                       "captcha_hidden": hidden + APPLY_BTN.format(g=self.g), "captcha_visible": challenge + APPLY_BTN.format(g=self.g),
                        "continue": f'<a href="/job-applications/{self.g}/wizard">Continue Application</a>',
                        "login": '<a href="/login">Log in</a>' + APPLY_BTN.format(g=self.g)}[m["job"]]
                 body = (FIX / "mock_job.html").read_text(encoding="utf-8").replace("{{APPLY}}", btn)
@@ -141,6 +150,21 @@ class FlowMock(unittest.TestCase):
         with self.assertRaises(F.Stop) as cm:
             self.apply()
         self.assertEqual(cm.exception.kind, "BLOCKED")
+
+    def test_hidden_recaptcha_helper_is_not_a_block(self):
+        self.mode["job"] = "captcha_hidden"  # seen live 2026-11-01: Dice's wizard loads it on every application
+        self.assertEqual(self.apply().code, "DRY_RUN_OK")
+
+    def test_visible_captcha_challenge_blocks(self):
+        self.mode["job"] = "captcha_visible"
+        with self.assertRaises(F.Stop) as cm:
+            self.apply()
+        self.assertEqual(cm.exception.kind, "BLOCKED")
+
+    def test_session_refresh_is_not_a_logout(self):
+        self.mode["job"] = "refreshing"
+        self.assertEqual(self.apply().code, "DRY_RUN_OK")
+        self.assertEqual(self.mode["refreshes"], 1)
 
     def test_logged_out(self):
         self.mode["job"] = "login"

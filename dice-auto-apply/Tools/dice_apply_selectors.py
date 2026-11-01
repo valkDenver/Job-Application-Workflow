@@ -31,6 +31,7 @@ BLOCK_TEXTS = ["just a moment", "access denied", "unusual activity", "verify you
 BLOCK_BODY_TEXTS = ["verify you are human", "are you a robot", "press & hold", "press and hold", "checking your browser",
                     "request blocked", "enable javascript and cookies to continue"]                                  # UNVERIFIED
 SHORT_PAGE_CHARS = 2500
+MIN_CHALLENGE_PX = 40   # a CAPTCHA frame smaller than this (or hidden) is a helper, not a challenge (verified 2026-11-01)
 CAPTCHA_FRAME_PATTERNS = [r"recaptcha", r"hcaptcha", r"challenges\.cloudflare\.com", r"turnstile", r"captcha-delivery",
                           r"perimeterx|px-captcha", r"arkoselabs|funcaptcha"]           # UNVERIFIED
 # Matched in titles/headings, or in the body of a short page only (never in a long job description). UNVERIFIED (open question 6)

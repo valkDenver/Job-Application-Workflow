@@ -67,6 +67,14 @@ class Guard(unittest.TestCase):
         self.assertEqual(G.classify_frames(["https://www.google.com/recaptcha/api2/anchor?k=1"])[:5], "hard:")
         self.assertEqual(G.classify_frames(["https://www.dice.com/embedded"]), "")
 
+    def test_hidden_recaptcha_helper_is_not_a_block(self):
+        # seen live 2026-11-01 in the Dice wizard: Google's invisible reCAPTCHA helper, 0x0 and display:none
+        self.assertEqual(G.classify_frames([("https://www.google.com/recaptcha/api2/aframe", 0, 0)]), "")
+        self.assertEqual(G.classify_frames([("https://www.google.com/recaptcha/api2/anchor?k=1", 0, 0)]), "")   # hidden anchor
+        self.assertEqual(G.classify_frames([("https://www.google.com/recaptcha/api2/aframe", 300, 300)]), "")   # helper even if sized
+        self.assertTrue(G.classify_frames([("https://www.google.com/recaptcha/api2/bframe?k=1", 400, 580)]).startswith("hard:"))
+        self.assertTrue(G.classify_frames([("https://www.google.com/recaptcha/api2/anchor?k=1", 304, 78)]).startswith("hard:"))
+
     def test_responses(self):
         self.assertEqual(G.classify_response("https://www.dice.com/job-detail/x", 403, "document"), "hard")
         self.assertEqual(G.classify_response("https://www.dice.com/job-detail/x", 429, "document"), "hard")

@@ -193,8 +193,14 @@ def classify_text(title_and_headings, body=""):
     return ""
 
 
-def classify_frames(frame_urls):
-    for u in frame_urls or ():
+def classify_frames(frames):
+    """frames: (url, width, height) of each frame as shown on the page. Only a CAPTCHA frame the user could actually see counts.
+    Seen live 2026-11-01: Dice's wizard always loads Google's invisible reCAPTCHA helper (recaptcha/api2/aframe, 0x0, display:none);
+    that is not a challenge. A real one is a visible frame of real size (the checkbox, or the image challenge)."""
+    for f in frames or ():
+        u, w, h = (f, S.MIN_CHALLENGE_PX, S.MIN_CHALLENGE_PX) if isinstance(f, str) else f
+        if (w or 0) < S.MIN_CHALLENGE_PX or (h or 0) < S.MIN_CHALLENGE_PX or re.search(r"recaptcha/[^/]+/aframe", u or "", re.I):
+            continue
         for pat in S.CAPTCHA_FRAME_PATTERNS:
             if re.search(pat, u or "", re.I):
                 return "hard:captcha frame " + pat

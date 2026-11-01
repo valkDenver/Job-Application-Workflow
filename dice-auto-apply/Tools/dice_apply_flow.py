@@ -119,13 +119,25 @@ class Session:
             return "", ""
         return f"{title} {heads}", body
 
+    def visible_frames(self):
+        """(url, width, height) of each child frame as shown on the page; hidden frames report 0 x 0."""
+        out = []
+        for f in self.page.frames[1:]:
+            try:
+                el = f.frame_element()
+                box = el.bounding_box() if el.is_visible() else None
+            except PwError:
+                box = None
+            out.append((f.url, box["width"] if box else 0, box["height"] if box else 0))
+        return out
+
     def check_block(self):
         if self.hard:
             raise Stop("BLOCKED", self.hard)
         if self.soft_stop:
             raise Stop("SOFT_STOP", "three slow or failing Dice responses within an hour")
         head, body = self.signal_text()
-        c = G.classify_text(head, body) or G.classify_frames([f.url for f in self.page.frames])
+        c = G.classify_text(head, body) or G.classify_frames(self.visible_frames())
         if c.startswith("hard:"):
             raise Stop("BLOCKED", c[5:])
         if c == "limit":
@@ -222,7 +234,13 @@ class Session:
         self.goto(job["Job URL"])
         body = self.check_block()
         if not self.logged_in():
-            raise Stop("LOGIN_REQUIRED", "Dice shows Log in: the session is not logged in")
+            # seen live 2026-11-01: after a while idle, Dice first renders the page logged out while it refreshes the session from its
+            # stored token, then logs back in by itself. Give it a moment and one reload before calling the session lost.
+            time.sleep(6)
+            self.goto(job["Job URL"])
+            body = self.check_block()
+            if not self.logged_in():
+                raise Stop("LOGIN_REQUIRED", "Dice shows Log in: the session is not logged in")
         low = body.lower()
         if any(t in low for t in S.GONE_TEXTS):
             raise JobEnd("JOB_GONE", "Dice says the job is no longer available")
