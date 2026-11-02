@@ -72,7 +72,7 @@ For that Job ID, read:
 - Recruiter Email (if blank, look in Notes for a "Company recruiting email" entry; if there is none, stop)
 - Recruiter Phone
 - Resume Filename (Situations 1 and 4 only; do not read the resume in Situations 2 and 3)
-- Finding the resume file (Situations 1 and 4): the Resume Filename is only the file name. Use the Resume Path column when it is filled; otherwise run python Tools/resume_path.py find --job JOB-#### --filename "<Resume Filename>" (python3 on a Mac), which looks in Documents/Job Application Workflow/Resumes for that job's folder. If it lists one file, that is the attachment; if it finds none, ask me for the file.
+- Finding the resume file (Situations 1 and 4): the Resume Filename is only the file name. When the Resume Path column is filled, it is the folder that holds the file (older rows may hold the full file path): the attachment is <Resume Path>/<Resume Filename>; if that file is not there, or Resume Path is empty, run python Tools/resume_path.py find --job JOB-#### --filename "<Resume Filename>" (python3 on a Mac), which looks in Documents/Job Application Workflow/Resumes for that job's folder. If it lists one file, that is the attachment; if it finds none, ask me for the file.
 - Vendor Call Date and Pipeline Status
 - Email Drafted Date (if that column exists)
 - Notes (including the claims recorded from the vendor call, and any earlier email drafts)

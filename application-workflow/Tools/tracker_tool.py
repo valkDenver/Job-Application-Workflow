@@ -34,9 +34,10 @@ Read commands (never change the file):
 Write commands (refuse to run while the workbook is open in Excel):
   set <JOB-####> [--set "Field=Value" ...] [--note "text"] [--confirmed-closed] [--email-drafted attached|none]
                                  only these fields can be set: Pipeline Status, Vendor Call Date, Resume Filename, Resume Path,
-                                 Follow-Up Date. Resume Path must be the full path of an existing file named like the Resume Filename
-                                 (or a link); when only Resume Filename is given, the file is looked up in that job's folder under
-                                 Documents/Job Application Workflow/Resumes and Resume Path is filled with it. A replaced path is noted.
+                                 Follow-Up Date. Resume Path holds the resume's folder, not the file name: give the folder (it must hold
+                                 a file named like the Resume Filename), or the full file path (checked, then its folder is stored), or a
+                                 link. When only Resume Filename is given, the file is looked up in that job's folder under
+                                 Documents/Job Application Workflow/Resumes and its folder is stored. A replaced path is noted.
                                  --note appends a paragraph to Notes (existing Notes are never replaced).
                                  --email-drafted records the draft: Email Drafted Date = today plus "(resume attached)" or "(no resume)".
                                  Module 04 passes it with Pipeline Status=EMAIL DRAFTED; the date is written even when the status
@@ -631,23 +632,30 @@ def cmd_set(a):
 
 
 def clean_resume_path(v, filename):
-    """The value Module 03 gives for Resume Path -> the path to store. Accepts the whole 'RESUME PATH: ...' line and quotes around it.
-    A local path must be absolute and point to an existing file whose name is the job's Resume Filename; a link is kept as it is."""
+    """The value Module 03 gives for Resume Path -> the folder to store (Resume Path holds the job's resume folder; the file is
+    <Resume Path>/<Resume Filename>). Accepts the whole 'RESUME PATH: ...' line and quotes around it. A local path must be absolute: a
+    folder must hold a file named like the Resume Filename, and a full file path must have that name (its folder is stored). A link is
+    kept as it is."""
     v = re.sub(r"^\s*RESUME PATH:\s*", "", v, flags=re.I).strip().strip('"').strip("'").strip()
     if re.match(r"^https?://", v, re.I):
         return v
     if not os.path.isabs(v):
-        raise Refused(f"Resume Path must be the full path of the saved file (got: {v}). Nothing was changed.")
-    if not os.path.isfile(v):
-        raise Refused(f"No file at the Resume Path: {v}. Save the resume first, then repeat. Nothing was changed.")
-    if filename and os.path.basename(v).lower() != filename.strip().lower():
-        raise Refused(f"Resume Path points to {os.path.basename(v)}, but the Resume Filename is {filename}. Nothing was changed.")
+        raise Refused(f"Resume Path must be the full path of the resume's folder (got: {v}). Nothing was changed.")
+    if os.path.isfile(v):
+        if filename and os.path.basename(v).lower() != filename.strip().lower():
+            raise Refused(f"Resume Path points to {os.path.basename(v)}, but the Resume Filename is {filename}. Nothing was changed.")
+        return os.path.dirname(os.path.normpath(v))
+    if not os.path.isdir(v):
+        raise Refused(f"No folder at the Resume Path: {v}. Save the resume first, then repeat. Nothing was changed.")
+    if filename and not os.path.isfile(os.path.join(v, filename.strip())):
+        raise Refused(f"The folder {v} holds no file named {filename}. Nothing was changed.")
     return os.path.normpath(v)
 
 
 def resume_path_change(ws, hm, r, job, changes, report):
-    """Fill Resume Path whenever a resume is recorded. A given path is checked; with only a Resume Filename, the file is looked up in the
-    job's folder under Documents/Job Application Workflow/Resumes (resume_path.py find). Returns the Notes lines to add."""
+    """Fill Resume Path (the resume's folder) whenever a resume is recorded. A given path is checked; with only a Resume Filename, the
+    file is looked up in the job's folder under Documents/Job Application Workflow/Resumes (resume_path.py find). Returns the Notes
+    lines to add."""
     filename = changes.get("Resume Filename") or text(ws.cell(r, need(hm, "Resume Filename", MASTER) + 1).value)
     col = hm.get(norm("Resume Path"))
     old = text(ws.cell(r, col + 1).value) if col is not None else ""
@@ -663,7 +671,7 @@ def resume_path_change(ws, hm, r, job, changes, report):
             report.append(f"Resume Path not filled: {len(hits) or 'no'} file(s) named {filename} in the {job} folders under "
                           f"{resume_path.resumes_root()}; give it with --set \"Resume Path=<full path>\"")
             return []
-        changes["Resume Path"] = hits[0]
+        changes["Resume Path"] = os.path.dirname(hits[0])
     if changes["Resume Path"] == old:
         del changes["Resume Path"]
         report.append("Resume Path already set")
@@ -918,6 +926,8 @@ def cmd_edit(a):
             v = v.upper()
             if v not in RANK and v != "SKIPPED":
                 raise Refused(f'"{v}" is not a Pipeline Status value.')
+        if f == "Resume Path" and os.path.isfile(v):  # Resume Path holds the folder; a pasted file path keeps only its folder
+            v = os.path.dirname(os.path.normpath(v))
         changes[f] = v
     if not changes and not (a.note or "").strip():
         raise Refused("Nothing to do: give --set and/or --note.")
