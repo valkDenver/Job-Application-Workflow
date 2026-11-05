@@ -34,7 +34,7 @@ The feed is "Master Job Tracker - SHARED.xlsx" in a shared Google Drive folder. 
 4. Work the jobs in your own tracker. Set your own Pipeline Status, dates and notes there.
 
 Good to know:
-- New jobs are added after each search run, on weekdays (about 7:00 and 11:00 Mountain time). The feed is only as fresh as the last run.
+- New jobs are added after each search run, on weekdays (about 9:30, 12:30 and 17:30 Mountain time, when the runs at 9:00, 12:00 and 17:00 finish). Each run adds the jobs posted since the previous one; Monday morning's run also adds the weekend's jobs. The feed is only as fresh as the last run.
 - The feed only ever adds jobs. If a job closes or a recruiter email is added later, the feed does not show it. Check the job link before you spend time on it.
 - Pipeline Status, Notes and similar columns show the publisher's values when the job was added, not your progress.
 - Do not edit the shared file or save over it. If something looks wrong, tell the person who runs the feed.
