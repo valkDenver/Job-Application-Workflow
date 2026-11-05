@@ -24,7 +24,9 @@ Otherwise run `python Tools/tracker_tool.py list "<tracker>"` (all RESUME NEEDED
 The list shows Job ID, title, company, status, Resume Filename and the start of Why Niche. Before going on:
 - A job whose status is SKIPPED or CLOSED: ask before including it.
 - A job that already has a Resume Filename: ask whether to make another resume for it.
-- Two jobs with the same title at the same company (or "Possible duplicate" in the tracker): keep both, but run them one after the other, never at the same time, so the second can reuse the first's resume from the library.
+- Two jobs with the same title at the same company (or "Possible duplicate" in the tracker): ask in the plan (step 4) whether to build one resume and copy it to the other job. A second posting of the same job is often shorter, so Module 03's library check can score the first resume below 85% and build a second one for the same job.
+  - Yes: launch a helper only for the first job. When it returns BUILT or REUSED, copy its resume yourself: `python Tools/resume_path.py reuse --source "<first job's folder>/<file name>" --tech "<technology>" [--specialty "<specialty>"] --job <second Job ID> --tracker "<tracker>"`, with the technology (and specialty, if any) taken from the first job's folder: the folder names right after `Resumes`. Append a result line for the second job to `results.txt`: REUSED, the file name, the FOLDER line the command printed, the first job's ATS and check results, and "same posting as <first Job ID>; copied at the candidate's request". If the first job stops at the gate or fails, run the second job normally.
+  - No: keep both, but run them one after the other, never at the same time, so the second can still reuse the first's resume through the library check.
 
 ## 2. Same recruiter check (once for the whole run)
 
