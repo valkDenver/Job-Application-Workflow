@@ -36,3 +36,6 @@ application-workflow/Run Notes/runs/
 # Short-lived lock and temp files from resume_path.py saves
 application-workflow/Tools/*.lock
 application-workflow/Tools/*.tmp
+
+# Each candidate's own technology list, created from resume_path.py's SEED on first use
+application-workflow/Tools/resume_categories.json
