@@ -43,7 +43,9 @@ Commands:
                                  platform?), kept in employer_tools_cache.json so the same web search is not repeated for later jobs.
                                  get prints the saved outcome or "none"; delete the file to clear everything.
 
-The technology list is kept in resume_categories.json next to this script and grows as new technologies are added.
+The technology list is kept in resume_categories.json next to this script. It is created from SEED (below) the first time it is
+needed and grows as new technologies are added. It is each candidate's own file and is not tracked in git, so a pull never
+conflicts with it; to change the starting list for new candidates, change SEED.
 Exit code 0 = done, 2 = refused or not found, 3 = file already exists.
 """
 import argparse, datetime as dt, difflib, json, os, re, sys

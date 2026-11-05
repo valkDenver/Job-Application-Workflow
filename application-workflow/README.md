@@ -15,7 +15,7 @@ There is no Module 01 here: the job search is run by the person who publishes th
 
 ## Quick path
 
-1. Get this folder (clone the repository or download the ZIP) and open a terminal in the `application-workflow` folder. Every `Tools/...` command in this guide runs from there. Install Python 3 ([python.org](https://www.python.org); on Windows tick "Add to PATH"), then once in that terminal: `pip install openpyxl` (Mac: `pip3`). Check with `python Tools/tracker_tool.py --help` (Mac: `python3`).
+1. Get this folder (clone the repository or download the ZIP) and open a terminal in the `application-workflow` folder. Every `Tools/...` command in this guide runs from there. Install Python 3 ([python.org](https://www.python.org); on Windows tick "Add to PATH"), then once in that terminal: `pip install openpyxl python-docx` (Mac: `python3 -m pip install --user openpyxl python-docx`). Check with `python Tools/tracker_tool.py --help` (Mac: `python3`).
 2. Rename `Master Job Tracker - TEMPLATE.xlsx` to `Master Job Tracker - <your name>.xlsx` and delete the grey EXAMPLE rows on every sheet. The Excluded Jobs sheet stays empty.
 3. Copy `Candidate Profile - TEMPLATE.txt`, rename it with your name and fill it in: personal details, employers (most recent first), and the Vendor Call Facts at the end.
 4. Connect Gmail (creates drafts only). Claude: Customize > Connectors. ChatGPT: Settings > Apps > Developer mode > Create app. Without it, Module 04 shows the email text to paste.
@@ -23,6 +23,21 @@ There is no Module 01 here: the job search is run by the person who publishes th
 6. Optional: save each prompt as its own Claude Project or Custom GPT so you do not paste it every time.
 
 Never share a filled-in tracker or profile; they contain personal data.
+
+## Getting updates
+
+If you cloned the repository, get the latest version with `git pull`, run in the repository folder (the one that holds `application-workflow`).
+
+If `git pull` stops with "Your local changes to the following files would be overwritten" and names `application-workflow/Tools/resume_categories.json`, keep your own copy of that file and pull again (Mac or Git Bash; on Windows PowerShell use `Copy-Item` for `cp`):
+
+```
+cp application-workflow/Tools/resume_categories.json ../resume_categories.backup.json
+git checkout -- application-workflow/Tools/resume_categories.json
+git pull
+cp ../resume_categories.backup.json application-workflow/Tools/resume_categories.json
+```
+
+This is needed once: from this update on, `resume_categories.json` is your own file and no longer part of the repository, so it never blocks a pull again. For any other file named in that message, ask the person who maintains the workflow before discarding your change.
 
 ## Get jobs from the shared feed
 
@@ -125,7 +140,7 @@ Double-click `Start Tracker Viewer.bat` (Mac: `Start Tracker Viewer.command`; if
 | `Tools/email_check.py` | Plans an email batch and checks each email (years claim, JD tools, word count, variety). Without it Module 04 checks by hand |
 | `Tools/resume_path.py` | Chooses the resume folder, saves the resume, finds and copies reusable resumes, lets Module 04 find a job's resume file |
 | `Tools/resume_check.py` | Checks the finished Word resume: layout, bullets, wording rules, tool limits, word count, ATS score. Without it Module 03 checks by hand |
-| `Tools/resume_categories.json` | The technology folders for resumes; edit it to rename a folder |
+| `Tools/resume_categories.json` | Your technology folders for resumes. Created from a starting list the first time a resume tool runs, then grows as Module 03 adds technologies; it is yours and not part of the repository. Edit it to rename a folder |
 
 ## Troubleshooting
 
