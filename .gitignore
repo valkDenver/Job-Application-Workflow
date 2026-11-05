@@ -30,3 +30,9 @@ work_*/
 # Job-search (Module 01) and shared-feed publishing: kept local, not shared with candidates
 publisher/
 designs/
+
+# Batch resume runs: per-run scratch files and result lines
+application-workflow/Run Notes/runs/
+# Short-lived lock and temp files from resume_path.py saves
+application-workflow/Tools/*.lock
+application-workflow/Tools/*.tmp

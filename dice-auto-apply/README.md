@@ -28,7 +28,7 @@ You need Google Chrome and an AI assistant. Two ways to use it:
 Then say: **"Set up Dice auto apply. Follow 5 - Dice Auto Apply.txt."** (Claude Code, Codex and Gemini CLI find that file on their own when opened in this folder.) The assistant then:
 1. checks your computer and, with your OK, installs what's missing (including the right Python version),
 2. opens Chrome so you can **log in to Dice yourself**. The script never sees your password.
-3. shows the defaults (**200 applications a day**, every day, 08:00–16:00, normal pace) and changes any you want,
+3. shows the defaults (**150 applications a day**, Monday to Friday, 05:00–22:00, normal pace) and changes any you want,
 4. asks the common screening questions (work authorization, rate, relocation…) and saves your answers,
 5. runs a 1–2 job **test** so you can watch the browser once.
 
@@ -59,7 +59,7 @@ After a few rounds the assistant will suggest starting a fresh conversation, to 
 
 ## Where things are
 
-- **Settings:** `Tools/dice_apply_config.json`, one file shared by everyone, with the defaults (200 applications a day, every day, 08:00–16:00, normal pace). To change a setting for yourself, ask your assistant or use `config set` (for example `config set max_submits_per_day=150`). Your change is saved in `settings.json` next to the Dice login (below), so the shared file never changes and `git pull` never conflicts. `config show` marks your own settings.
+- **Settings:** `Tools/dice_apply_config.json`, one file shared by everyone, with the defaults (150 applications a day, Monday to Friday, 05:00–22:00, normal pace). To change a setting for yourself, ask your assistant or use `config set` (for example `config set max_submits_per_day=150`). Your change is saved in `settings.json` next to the Dice login (below), so the shared file never changes and `git pull` never conflicts. `config show` marks your own settings.
 - **Your screening answers:** `screening_answers.json`, kept next to the Dice login (below), outside this folder, because they are personal.
 - **The Dice login session, round results and screenshots:** `~/.job-workflow/dice-apply/` (Mac) or `%USERPROFILE%\.job-workflow\dice-apply\` (Windows). Deleting `browser-profile` there logs you out.
 - **Tracker backups:** a `Backups` folder next to your tracker, once a day before the first update.

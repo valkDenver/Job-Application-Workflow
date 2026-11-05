@@ -1,9 +1,9 @@
 {
-  "max_submits_per_day": 200,
+  "max_submits_per_day": 150,
   "max_per_round": null,
   "max_wizard_opens_per_day": null,
-  "active_days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-  "active_hours": ["08:00", "16:00"],
+  "active_days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+  "active_hours": ["05:00", "22:00"],
   "default_pace": "normal",
   "paces": {
     "brisk":   {"gap_median": 60,  "gap_min": 35, "gap_max": 180, "break_every": [25, 40], "break_min": [4, 10]},

@@ -34,7 +34,7 @@ The feed is "Master Job Tracker - SHARED.xlsx" in a shared Google Drive folder. 
 4. Work the jobs in your own tracker. Set your own Pipeline Status, dates and notes there.
 
 Good to know:
-- New jobs are added after each search run, on weekdays (about 7:00 and 11:00 Mountain time). The feed is only as fresh as the last run.
+- New jobs are added after each search run, on weekdays (about 9:30, 12:30 and 17:30 Mountain time, when the runs at 9:00, 12:00 and 17:00 finish). Each run adds the jobs posted since the previous one; Monday morning's run also adds the weekend's jobs. The feed is only as fresh as the last run.
 - The feed only ever adds jobs. If a job closes or a recruiter email is added later, the feed does not show it. Check the job link before you spend time on it.
 - Pipeline Status, Notes and similar columns show the publisher's values when the job was added, not your progress.
 - Do not edit the shared file or save over it. If something looks wrong, tell the person who runs the feed.
@@ -54,9 +54,15 @@ Good to know:
 **Resume (Module 03)**: `Run Module 03 for JOB-1014.` [attach the tracker and your Candidate Profile]; can be done before or after the call.
 - It checks the matching technology folder first and reuses a resume scoring 85% or more by copying it into the job's folder; otherwise it builds a Word resume, runs `Tools/resume_check.py` on it until it passes, and shows the ATS score.
 - Resumes are saved as `Documents/Job Application Workflow/Resumes/<Technology>/<Specialty>/<JOB-#### - Client (via Staffing company)>/<Name>_<Position title>.docx`, the same way on Windows and Mac.
+- Only technology folders in `Tools/resume_categories.json` are searched for reuse. If you made folders yourself, or the list was reset, run `python Tools/resume_path.py sync` once (`python3` on a Mac): it adds every folder already in your Resumes folder to the list, and never moves or deletes anything. A batch run does this for you.
 - Industry-fit check: before writing anything it checks that at least one of your employers' industries can realistically use the job's core tools. If none can, it stops and records "Resume not generated" in the tracker Notes instead of inventing experience.
 - Heads-up check: before it creates a new resume it looks for earlier resumes made for the same recruiter or staffing company. A different technology gets a one-time warning; a similar role offers to update that resume instead.
 - It records the resume in the tracker: Resume Filename, Resume Path (the folder the resume is saved in, without the file name) and RESUME CREATED. It also ends with a line `RESUME PATH: <folder or link>`; if the tracker update could not run (for example the tracker was open in Excel), copy that line, open the job in the viewer, press Paste next to Resume path, then Save.
+
+**Many resumes at once (batch run)**: `Follow "Run Notes/BATCH_RUN.md" for all my RESUME NEEDED jobs.` (or name the Job IDs) [give the tracker and your Candidate Profile]
+- For Claude Code. It runs Module 03 for each job in a small helper of its own and records every result in the tracker at the end. You answer one question first: the plan, with any duplicate, same-recruiter or already-built job to decide.
+- One-time setup: the helper is `.claude/agents/resume-helper.md`. It loads when Claude Code is opened in this folder; to use it from any folder, copy it to `~/.claude/agents/` (Windows: `C:\Users\<you>\.claude\agents\`). Start a new session after copying.
+- Close the tracker in Excel before the run ends. In tests the helpers used about a third fewer tokens per resume than general-purpose helpers doing the same jobs, and more in large runs, where the old way's main conversation grows with every helper report.
 
 **Email (Module 04)**: `Run Module 04 for JOB-1014.` [attach the tracker and your Candidate Profile]. It asks what happened with the recruiter and writes a different email for each case. The resume is attached only after you have actually reached the recruiter.
 1. Called and they picked up: call follow-up email, resume attached.
@@ -111,7 +117,10 @@ Double-click `Start Tracker Viewer.bat` (Mac: `Start Tracker Viewer.command`; if
 | `Start Tracker Viewer.bat` / `.command` | Open the viewer with editing |
 | `Tools/Job Tracker Viewer.html` | Browse and filter your tracker (read-only on its own) |
 | `Tools/tracker_server.py` | The small local helper behind the launchers (Python + openpyxl) |
-| `Tools/tracker_tool.py` | Reads or changes ONE job without loading the whole workbook: get, summary, related, followups, drafted-notes, skipped, check-contacts, set/edit, skip/reopen, add-columns, extend-ranges, plus commands used by the job search |
+| `Run Notes/BATCH_RUN.md` | Instructions for a batch resume run (many Module 03 jobs in one session) |
+| `.claude/agents/resume-helper.md` | The small helper a batch run uses, one per job |
+| `Run Notes/token_usage.py` | Totals the tokens of a session and its helpers from the Claude Code logs, to compare runs |
+| `Tools/tracker_tool.py` | Reads or changes ONE job without loading the whole workbook: get, list, summary, related, followups, drafted-notes, skipped, check-contacts, set/edit, skip/reopen, add-columns, extend-ranges, plus commands used by the job search |
 | `Tools/contact_clean.py` | The one definition of a clean Recruiter Name, Email and Phone cell. `python Tools/contact_clean.py --selftest` checks it |
 | `Tools/email_check.py` | Plans an email batch and checks each email (years claim, JD tools, word count, variety). Without it Module 04 checks by hand |
 | `Tools/resume_path.py` | Chooses the resume folder, saves the resume, finds and copies reusable resumes, lets Module 04 find a job's resume file |
