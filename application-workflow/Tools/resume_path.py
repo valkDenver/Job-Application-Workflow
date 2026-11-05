@@ -7,6 +7,11 @@ Layout:  Documents/Job Application Workflow/Resumes/<Technology>/<Specialty, opt
 
 Commands:
   categories                     the technology list (with keyword hints and specialties) the model must choose from
+  sync [--dry-run]               adds to the technology list every folder already in Resumes/ that is missing from it: each top folder
+                                 as a technology, each folder inside it that is not a job folder (JOB-... or NO-ID_...) as its specialty.
+                                 Only adds; never removes, renames or moves anything. A folder missing from the list is never searched
+                                 by the library check, so run this once after folders were made by hand or the list was reset.
+                                 --dry-run prints what would be added without saving
   path --tech T [--specialty S] --name "Full Name" --title "Position Title" [--job JOB-#### --tracker FILE] [--new] [--dry-run]
                                  creates the folders and prints the folder, file name and full path.
                                  --tech must be an existing technology (close spellings are matched, for example "Dev Ops" -> DevOps);
@@ -217,6 +222,51 @@ def cmd_categories(a):
         out(f"{t}\thints: {', '.join(v.get('hints') or []) or '-'}\tspecialties: {sp}")
 
 
+JOB_DIR = re.compile(r"^(JOB-\d+|NO-ID_)", re.I)
+
+
+def cmd_sync(a):
+    data = load_config()
+    techs = data["technologies"]
+    root = resumes_root()
+    if not os.path.isdir(root):
+        out(f"No Resumes folder yet, nothing to add: {root}")
+        return 0
+    subdirs = lambda p: sorted(n for n in os.listdir(p) if os.path.isdir(os.path.join(p, n)) and not n.startswith((".", "~")))
+    added_t, added_s, notes = [], [], []
+    for name in subdirs(root):
+        if JOB_DIR.match(name):
+            notes.append(f"job folder directly under Resumes, not a technology (left as it is): {name}")
+            continue
+        by_key = {key(t): t for t in techs}
+        tech = by_key.get(key(name))
+        if tech is None:
+            tech = name  # the folder's own name, so new resumes and the library check use this same folder
+            techs[tech] = {"hints": [], "specialties": []}
+            added_t.append(tech)
+        elif tech.lower() != name.lower():
+            notes.append(f'folder "{name}" is listed as "{tech}": new resumes go to "{tech}", and the library check does not search "{name}"')
+        specs = techs[tech].setdefault("specialties", [])
+        for sub in subdirs(os.path.join(root, name)):
+            if JOB_DIR.match(sub) or key(sub) in {key(s) for s in specs}:
+                continue
+            specs.append(sub)
+            added_s.append(f"{tech} / {sub}")
+    if not added_t and not added_s:
+        out(f"Nothing to add: every folder in {root} is already in the list ({len(techs)} technologies).")
+    else:
+        out(("Would add" if a.dry_run else "Added") + f" {len(added_t)} technolog{'y' if len(added_t) == 1 else 'ies'} and {len(added_s)} specialt{'y' if len(added_s) == 1 else 'ies'}:")
+        for t in added_t:
+            out(f"  technology: {t}")
+        for s in added_s:
+            out(f"  specialty:  {s}")
+        if not a.dry_run:
+            save_config(data)
+    for n in notes:
+        out("Note: " + n)
+    return 0
+
+
 def resolve(a, data):
     techs = data["technologies"]
     tech = match_name(a.tech, techs)
@@ -416,6 +466,9 @@ def main(argv):
     sub = p.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("categories")
     s.set_defaults(fn=cmd_categories)
+    s = sub.add_parser("sync")
+    s.add_argument("--dry-run", action="store_true")
+    s.set_defaults(fn=cmd_sync)
     s = sub.add_parser("path")
     s.add_argument("--tech", required=True)
     s.add_argument("--specialty")

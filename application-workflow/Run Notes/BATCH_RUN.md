@@ -15,9 +15,9 @@ You are the main session. Helpers do the Module 03 work, one job each. Your job 
 
 Steps 1 to 3 take at most two shell calls. If the candidate named Job IDs, run everything in one call:
 
-`python Tools/tracker_tool.py list "<tracker>" --jobs JOB-####,JOB-####; python Tools/resume_path.py categories; python Tools/tracker_tool.py related "<tracker>" JOB-#### --limit 3; python Tools/tracker_tool.py related "<tracker>" JOB-#### --limit 3` (one `related` per job)
+`python Tools/tracker_tool.py list "<tracker>" --jobs JOB-####,JOB-####; python Tools/resume_path.py sync; python Tools/resume_path.py categories; python Tools/tracker_tool.py related "<tracker>" JOB-#### --limit 3; python Tools/tracker_tool.py related "<tracker>" JOB-#### --limit 3` (one `related` per job)
 
-Otherwise run `python Tools/tracker_tool.py list "<tracker>"` (all RESUME NEEDED jobs) first, then `categories` and every `related` together in a second call.
+Otherwise run `python Tools/tracker_tool.py list "<tracker>"` (all RESUME NEEDED jobs) first, then `sync`, `categories` and every `related` together in a second call. (`sync` adds any resume folder missing from the technology list, so the library check can search it; pass its notes on to the candidate.)
 
 (On a Mac use `python3` and forward slashes in every command in this file. Run every command from the `application-workflow` folder.)
 
