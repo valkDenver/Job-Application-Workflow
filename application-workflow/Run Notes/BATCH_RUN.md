@@ -9,6 +9,7 @@ You are the main session. Helpers do the Module 03 work, one job each. Your job 
 1. The helper agent must exist: an agent named `resume-helper` in your list of agent types. It comes from `application-workflow/.claude/agents/resume-helper.md`. It loads when Claude Code is opened in the `application-workflow` folder; to use it from any folder, copy the file to `~/.claude/agents/`. Agents load when a session starts, so a newly copied file needs a new session. If `resume-helper` is not available, tell the candidate and stop. Do not fall back to a general-purpose helper or a fork: they carry a much larger context on every call and cost several times more.
 2. You need the tracker file and the Candidate Profile file. If the candidate has not named them, ask.
 3. Ask the candidate to close the tracker in Excel before the end of the run; the tracker update refuses to write while it is open.
+4. Find a Python that can write Word files, as part of the first shell call in step 1: `python -c "import docx; print('docx ok')"` (`python3` on a Mac). If that fails, try the virtual environment in the `application-workflow` folder the same way: `venv/bin/python` on a Mac, `venv\Scripts\python.exe` on Windows. Use the first one that prints "docx ok" as the DOCX Python in every launch text. If none does, tell the candidate to run `pip install python-docx` (`pip3` on a Mac) and stop.
 
 ## 1. Pick the jobs
 
@@ -56,7 +57,7 @@ Files:
 - Module 03: <full path of 3 - Resume Generator.txt> (read it fully once, in parts if needed)
 - Tracker (read only for you): <full path of the tracker>
 - Candidate Profile: <full path of the profile>
-- Run every "python Tools/..." command from <full path of the application-workflow folder> (<Windows | Mac: use python3>). python-docx is installed.
+- Run every "python Tools/..." command from <full path of the application-workflow folder> (<Windows | Mac: use python3>). Build the Word file with: <the DOCX Python found before step 1> (it has python-docx).
 - Scratch files: <run folder>/<Job ID>/
 Run setting: <the candidate's run setting, word for word>
 
