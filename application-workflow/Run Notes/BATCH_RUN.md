@@ -44,7 +44,7 @@ Show the candidate, in one message: the number of jobs, and per job its Job ID, 
 
 - Make a run folder: `Run Notes/runs/<YYYY-MM-DD_HHMM>/` inside `application-workflow`. Helpers put their scratch files in `<run folder>/<Job ID>/` and append their result line to `<run folder>/results.txt`.
 - One helper per job, with the Agent tool: subagent_type `resume-helper`, a fresh helper every time (never a fork), with the launch text below.
-- Start four helpers at once, in one message (fewer if the run has fewer jobs, or if helpers fail on usage or rate limits). Each time a helper finishes, start the next job in that same turn, so no turn is spent only on launching.
+- Start five helpers at once, in one message (fewer if the run has fewer jobs, or if helpers fail on usage or rate limits). Each time a helper finishes, start the next job in that same turn, so no turn is spent only on launching.
 - Do not read anything while helpers run, and do not reply between helpers beyond launching the next one. When a helper returns, keep only its result line.
 - A helper that returns no result line, or ERROR: launch it once more for that job. If it fails again, report it and go on.
 
