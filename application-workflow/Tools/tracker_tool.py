@@ -27,6 +27,10 @@ Read commands (never change the file):
                                  finds recruiter cells that hold description text, glued-on words (name@co.comPhone), notes inside the email cell,
                                  a phone that is not a number, or a name that does not match the address. --since <Job ID> checks only that job and the
                                  ones after it (for example the rows you just copied in). Prints the cell, the problem and the suggested value; changes nothing
+  list [--status "RESUME NEEDED"] [--jobs JOB-####,...] [--limit 0]
+                                 one line per job: Job ID, Job Title, Company, Pipeline Status, Resume Filename and the start of
+                                 Why Niche (never the JD). --jobs lists exactly those jobs (and names any not found); without it,
+                                 every job with one of the --status values. The batch resume run uses this to pick and group jobs
   recheck-list [--days 14] [--status REVIEW,SHORTLIST,SELECTED,FOUND] [--limit 200]
                                  first prints how many jobs match (per portal), then up to --limit rows (Job ID, portal, URL,
                                  status, Date Found); lists tracked jobs worth re-checking; --limit 0 lists all
@@ -449,6 +453,43 @@ def cmd_summary(a):
     if nums:
         out(f"First Job ID: JOB-{min(nums):04d}   Last Job ID: JOB-{max(nums):04d}")
         out("By Pipeline Status: " + ", ".join(f"{k} {v}" for k, v in sorted(by.items(), key=lambda kv: -kv[1])))
+
+
+def cmd_list(a):
+    wb = open_read(a.tracker)
+    head, it = rows_of(sheet(wb, MASTER))
+    hm = header_map(head)
+    idc = need(hm, "Job ID", MASTER)
+    need(hm, "Pipeline Status", MASTER)
+
+    def cell(r, n):
+        i = hm.get(norm(n))
+        return text(r[i]).replace("\t", " ").replace("\n", " ") if i is not None and i < len(r) else ""
+
+    wanted = [x.strip().upper() for x in (a.jobs or "").split(",") if x.strip()]
+    want_status = {s.strip().upper() for s in a.status.split(",") if s.strip()}
+    found = {}
+    for r in it:
+        jid = text(r[idc]).upper()
+        if job_no(jid) is None or jid in found:
+            continue
+        if wanted and jid not in wanted:
+            continue
+        if not wanted and cell(r, "Pipeline Status").upper() not in want_status:
+            continue
+        found[jid] = [jid, cell(r, "Job Title"), cell(r, "Company"), cell(r, "Pipeline Status"),
+                      cell(r, "Resume Filename"), cell(r, "Why Niche / Potentially Niche")[:120]]
+    rows = [found[j] for j in wanted if j in found] if wanted else list(found.values())
+    out(f"{len(rows)} jobs" + (f" (status {', '.join(sorted(want_status))})" if not wanted else ""))
+    missing = [j for j in wanted if j not in found]
+    if missing:
+        out("Not found in the tracker: " + ", ".join(missing))
+    shown = rows if not a.limit else rows[:a.limit]
+    out("Job ID\tJob Title\tCompany\tPipeline Status\tResume Filename\tWhy Niche")
+    for m in shown:
+        out("\t".join(m))
+    if len(shown) < len(rows):
+        out(f"(listed the first {len(shown)} only; {len(rows) - len(shown)} more match; --limit 0 lists all)")
 
 
 def cmd_check_contacts(a):
@@ -1089,6 +1130,10 @@ def main(argv):
     add("summary", cmd_summary)
     s = add("drafted-notes", cmd_drafted_notes)
     s.add_argument("--exclude")
+    s = add("list", cmd_list)
+    s.add_argument("--status", default="RESUME NEEDED")
+    s.add_argument("--jobs")
+    s.add_argument("--limit", type=int, default=0)
     s = add("recheck-list", cmd_recheck_list)
     s.add_argument("--days", type=int, default=14)
     s.add_argument("--status", default="REVIEW,SHORTLIST,SELECTED,FOUND")

@@ -58,6 +58,11 @@ Good to know:
 - Heads-up check: before it creates a new resume it looks for earlier resumes made for the same recruiter or staffing company. A different technology gets a one-time warning; a similar role offers to update that resume instead.
 - It records the resume in the tracker: Resume Filename, Resume Path (the folder the resume is saved in, without the file name) and RESUME CREATED. It also ends with a line `RESUME PATH: <folder or link>`; if the tracker update could not run (for example the tracker was open in Excel), copy that line, open the job in the viewer, press Paste next to Resume path, then Save.
 
+**Many resumes at once (batch run)**: `Follow "Run Notes/BATCH_RUN.md" for all my RESUME NEEDED jobs.` (or name the Job IDs) [give the tracker and your Candidate Profile]
+- For Claude Code. It runs Module 03 for each job in a small helper of its own and records every result in the tracker at the end. You answer one question first: the plan, with any duplicate, same-recruiter or already-built job to decide.
+- One-time setup: the helper is `.claude/agents/resume-helper.md`. It loads when Claude Code is opened in this folder; to use it from any folder, copy it to `~/.claude/agents/` (Windows: `C:\Users\<you>\.claude\agents\`). Start a new session after copying.
+- Close the tracker in Excel before the run ends. Each resume costs about 40% fewer tokens than running Module 03 jobs in general-purpose helpers.
+
 **Email (Module 04)**: `Run Module 04 for JOB-1014.` [attach the tracker and your Candidate Profile]. It asks what happened with the recruiter and writes a different email for each case. The resume is attached only after you have actually reached the recruiter.
 1. Called and they picked up: call follow-up email, resume attached.
 2. Called and no answer: "tried reaching you" email, no resume.
@@ -111,7 +116,10 @@ Double-click `Start Tracker Viewer.bat` (Mac: `Start Tracker Viewer.command`; if
 | `Start Tracker Viewer.bat` / `.command` | Open the viewer with editing |
 | `Tools/Job Tracker Viewer.html` | Browse and filter your tracker (read-only on its own) |
 | `Tools/tracker_server.py` | The small local helper behind the launchers (Python + openpyxl) |
-| `Tools/tracker_tool.py` | Reads or changes ONE job without loading the whole workbook: get, summary, related, followups, drafted-notes, skipped, check-contacts, set/edit, skip/reopen, add-columns, extend-ranges, plus commands used by the job search |
+| `Run Notes/BATCH_RUN.md` | Instructions for a batch resume run (many Module 03 jobs in one session) |
+| `.claude/agents/resume-helper.md` | The small helper a batch run uses, one per job |
+| `Run Notes/token_usage.py` | Totals the tokens of a session and its helpers from the Claude Code logs, to compare runs |
+| `Tools/tracker_tool.py` | Reads or changes ONE job without loading the whole workbook: get, list, summary, related, followups, drafted-notes, skipped, check-contacts, set/edit, skip/reopen, add-columns, extend-ranges, plus commands used by the job search |
 | `Tools/contact_clean.py` | The one definition of a clean Recruiter Name, Email and Phone cell. `python Tools/contact_clean.py --selftest` checks it |
 | `Tools/email_check.py` | Plans an email batch and checks each email (years claim, JD tools, word count, variety). Without it Module 04 checks by hand |
 | `Tools/resume_path.py` | Chooses the resume folder, saves the resume, finds and copies reusable resumes, lets Module 04 find a job's resume file |
