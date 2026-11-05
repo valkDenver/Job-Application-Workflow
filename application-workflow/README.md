@@ -62,7 +62,7 @@ Good to know:
 **Many resumes at once (batch run)**: `Follow "Run Notes/BATCH_RUN.md" for all my RESUME NEEDED jobs.` (or name the Job IDs) [give the tracker and your Candidate Profile]
 - For Claude Code. It runs Module 03 for each job in a small helper of its own and records every result in the tracker at the end. You answer one question first: the plan, with any duplicate, same-recruiter or already-built job to decide.
 - One-time setup: the helper is `.claude/agents/resume-helper.md`. It loads when Claude Code is opened in this folder; to use it from any folder, copy it to `~/.claude/agents/` (Windows: `C:\Users\<you>\.claude\agents\`). Start a new session after copying.
-- Close the tracker in Excel before the run ends. Each resume costs about 40% fewer tokens than running Module 03 jobs in general-purpose helpers.
+- Close the tracker in Excel before the run ends. In tests the helpers used about a third fewer tokens per resume than general-purpose helpers doing the same jobs, and more in large runs, where the old way's main conversation grows with every helper report.
 
 **Email (Module 04)**: `Run Module 04 for JOB-1014.` [attach the tracker and your Candidate Profile]. It asks what happened with the recruiter and writes a different email for each case. The resume is attached only after you have actually reached the recruiter.
 1. Called and they picked up: call follow-up email, resume attached.

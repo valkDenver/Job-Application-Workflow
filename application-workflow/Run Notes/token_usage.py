@@ -18,7 +18,7 @@ normal input, so the breakdown matters when comparing cost rather than volume.
 """
 import argparse, glob, json, os, re, sys
 
-ROOT = os.path.join(os.path.expanduser("~"), ".claude", "projects")
+ROOT = os.path.join(os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(os.path.expanduser("~"), ".claude"), "projects")
 SCRIPT = re.compile(r"([\w.-]+\.(?:py|sh))\b")
 LINE = re.compile(r"^\s*(JOB-\d+)\s*\|\s*(BUILT|REUSED|GATE-STOP|ERROR)\b", re.I | re.M)
 
@@ -31,6 +31,8 @@ def read_log(path):
             try:
                 d = json.loads(line)
             except ValueError:
+                continue
+            if not isinstance(d, dict):
                 continue
             if d.get("isCompactSummary") or d.get("subtype") == "compact_boundary":
                 compacted = True
@@ -139,11 +141,16 @@ def main(argv):
         sys.stdout.reconfigure(encoding="utf-8")
     except AttributeError:
         pass
-    if a.recent:
+    if a.recent is not None:
+        if not os.path.isdir(ROOT):
+            print(f"No Claude Code logs found in {ROOT}.")
+            return 1
         found = []
         for p in glob.glob(os.path.join(ROOT, "*")):
             found += sessions_with_helpers(p)
-        for s in sorted(found, key=os.path.getmtime, reverse=True)[:a.recent]:
+        if not found:
+            print(f"No session in {ROOT} launched helpers.")
+        for s in sorted(found, key=os.path.getmtime, reverse=True)[:a.recent or None]:
             print(f"{len(helpers_of(s)):>3} helpers  {s}")
         return 0
     if not a.target:

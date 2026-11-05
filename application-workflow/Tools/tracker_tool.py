@@ -466,22 +466,27 @@ def cmd_list(a):
         i = hm.get(norm(n))
         return text(r[i]).replace("\t", " ").replace("\n", " ") if i is not None and i < len(r) else ""
 
-    wanted = [x.strip().upper() for x in (a.jobs or "").split(",") if x.strip()]
-    want_status = {s.strip().upper() for s in a.status.split(",") if s.strip()}
+    wanted = []
+    for x in (a.jobs or "").split(","):  # matched by number, as get does (JOB-01047 = JOB-1047); a repeated ID is listed once
+        if x.strip() and x.strip().upper() not in wanted:
+            wanted.append(x.strip().upper())
+    want_no = {job_no(x): x for x in wanted if job_no(x) is not None}
+    want_status = {re.sub(r"\s+", " ", s).strip().upper() for s in a.status.split(",") if s.strip()}
     found = {}
     for r in it:
-        jid = text(r[idc]).upper()
-        if job_no(jid) is None or jid in found:
+        n = job_no(r[idc])
+        if n is None or n in found:
             continue
-        if wanted and jid not in wanted:
+        if wanted and n not in want_no:
             continue
-        if not wanted and cell(r, "Pipeline Status").upper() not in want_status:
+        if not wanted and re.sub(r"\s+", " ", cell(r, "Pipeline Status")).upper() not in want_status:
             continue
-        found[jid] = [jid, cell(r, "Job Title"), cell(r, "Company"), cell(r, "Pipeline Status"),
+        found[n] = [text(r[idc]), cell(r, "Job Title"), cell(r, "Company"), cell(r, "Pipeline Status"),
                       cell(r, "Resume Filename"), cell(r, "Why Niche / Potentially Niche")[:120]]
-    rows = [found[j] for j in wanted if j in found] if wanted else list(found.values())
+    order = [n for n in dict.fromkeys(job_no(x) for x in wanted) if n in found]
+    rows = [found[n] for n in order] if wanted else list(found.values())
     out(f"{len(rows)} jobs" + (f" (status {', '.join(sorted(want_status))})" if not wanted else ""))
-    missing = [j for j in wanted if j not in found]
+    missing = [x for x in wanted if job_no(x) not in found]
     if missing:
         out("Not found in the tracker: " + ", ".join(missing))
     shown = rows if not a.limit else rows[:a.limit]

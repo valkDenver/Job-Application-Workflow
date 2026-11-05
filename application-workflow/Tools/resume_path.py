@@ -133,11 +133,68 @@ def load_config():
     return data
 
 
-def save_config(data):
-    tmp = CONFIG + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
+def write_json(path, data):
+    """Writes through a temp file of its own, so helpers running at the same time never share or half-write one."""
+    import tempfile, time
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=os.path.basename(path) + ".", suffix=".tmp")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
-    os.replace(tmp, CONFIG)
+    for attempt in range(5):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:  # Windows: another process is replacing or reading the same file
+            if attempt == 4:
+                os.remove(tmp)
+                raise
+            time.sleep(0.2 * (attempt + 1))
+
+
+class locked:
+    """Holds <path>.lock while a shared file is re-read and saved, so helpers running at the same time take turns.
+    A lock older than 30 seconds is left over from a stopped process and is removed."""
+    def __init__(self, path):
+        self.lock = path + ".lock"
+
+    def __enter__(self):
+        import time
+        for _ in range(300):
+            try:
+                os.close(os.open(self.lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+                return self
+            except FileExistsError:
+                try:
+                    if time.time() - os.path.getmtime(self.lock) > 30:
+                        os.remove(self.lock)
+                        continue
+                except OSError:
+                    pass
+                time.sleep(0.05)
+        raise Refused(f"{self.lock} is held by another process. Wait a moment and try again.")
+
+    def __exit__(self, *exc):
+        try:
+            os.remove(self.lock)
+        except OSError:
+            pass
+
+
+def save_config(data):
+    """Adds to the list on disk instead of overwriting it, so a technology another helper just added is kept."""
+    with locked(CONFIG):
+        try:
+            with open(CONFIG, encoding="utf-8") as f:
+                disk = json.load(f)
+            disk.setdefault("technologies", {})
+        except (OSError, ValueError):
+            disk = {"technologies": {}}
+        techs = disk["technologies"]
+        for t, v in data.get("technologies", {}).items():
+            cur = techs.setdefault(t, {"hints": [], "specialties": []})
+            for field in ("hints", "specialties"):
+                have = cur.setdefault(field, [])
+                have.extend(x for x in v.get(field) or [] if x not in have)
+        write_json(CONFIG, disk)
 
 
 def match_name(name, options):
@@ -222,11 +279,14 @@ def cmd_categories(a):
         out(f"{t}\thints: {', '.join(v.get('hints') or []) or '-'}\tspecialties: {sp}")
 
 
-JOB_DIR = re.compile(r"^(JOB-\d+|NO-ID_)", re.I)
+JOB_DIR = re.compile(r"^NO-ID_|\bJOB[- _]?\d+", re.I)  # job folders: "JOB-0123 - Acme", "NO-ID_2026-10-28", and hand-made variants
 
 
 def cmd_sync(a):
-    data = load_config()
+    if a.dry_run and not os.path.exists(CONFIG):
+        data = json.loads(json.dumps(SEED))  # a dry run saves nothing, not even the starting list
+    else:
+        data = load_config()
     techs = data["technologies"]
     root = resumes_root()
     if not os.path.isdir(root):
@@ -235,20 +295,27 @@ def cmd_sync(a):
     subdirs = lambda p: sorted(n for n in os.listdir(p) if os.path.isdir(os.path.join(p, n)) and not n.startswith((".", "~")))
     added_t, added_s, notes = [], [], []
     for name in subdirs(root):
-        if JOB_DIR.match(name):
+        if JOB_DIR.search(name):
             notes.append(f"job folder directly under Resumes, not a technology (left as it is): {name}")
             continue
         by_key = {key(t): t for t in techs}
         tech = by_key.get(key(name))
         if tech is None:
+            near = match_name(name, techs)
+            if near is not None:
+                notes.append(f'folder "{name}" was not added: it looks like the listed "{near}". To have the library check search it, '
+                             f'rename it to "{near}" or move its job folders into "{near}" yourself')
+                continue
             tech = name  # the folder's own name, so new resumes and the library check use this same folder
             techs[tech] = {"hints": [], "specialties": []}
             added_t.append(tech)
         elif tech.lower() != name.lower():
-            notes.append(f'folder "{name}" is listed as "{tech}": new resumes go to "{tech}", and the library check does not search "{name}"')
+            notes.append(f'folder "{name}" is listed as "{tech}": new resumes go to "{tech}", and the library check does not search "{name}" '
+                         f'(its subfolders were not added either)')
+            continue
         specs = techs[tech].setdefault("specialties", [])
         for sub in subdirs(os.path.join(root, name)):
-            if JOB_DIR.match(sub) or key(sub) in {key(s) for s in specs}:
+            if JOB_DIR.search(sub) or key(sub) in {key(s) for s in specs}:
                 continue
             specs.append(sub)
             added_s.append(f"{tech} / {sub}")
@@ -281,6 +348,9 @@ def resolve(a, data):
         created = True
     spec = None
     if getattr(a, "specialty", None):
+        if JOB_DIR.search(a.specialty):
+            raise Refused(f'"{a.specialty}" is a job folder, not a specialty. Give only the technology, and a specialty only when '
+                          f'the resume sits in a specialty folder between the technology and the job folder.')
         specs = techs[tech].setdefault("specialties", [])
         spec = match_name(a.specialty, specs)
         if spec is None:
@@ -452,11 +522,10 @@ def cmd_evidence(a):
         return 0
     if a.outcome not in ("used", "competitor", "inconclusive"):
         raise Refused("--outcome must be used, competitor or inconclusive.")
-    data[k] = {"employer": a.employer, "tool": a.tool, "outcome": a.outcome, "date": dt.date.today().strftime("%Y-%m-%d"), "note": a.note or ""}
-    tmp = EVIDENCE + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    os.replace(tmp, EVIDENCE)
+    with locked(EVIDENCE):
+        data = load_evidence()  # re-read just before saving, so results other helpers saved meanwhile are kept
+        data[k] = {"employer": a.employer, "tool": a.tool, "outcome": a.outcome, "date": dt.date.today().strftime("%Y-%m-%d"), "note": a.note or ""}
+        write_json(EVIDENCE, data)
     out(f"Saved: {a.employer} / {a.tool} = {a.outcome}")
     return 0
 
