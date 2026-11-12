@@ -52,49 +52,77 @@ Domain guidance:
 Seniority notes: [For the earliest role, say it must remain an earlier-career position.]
 
 OPTIONAL (only if you want them on the resume; Prompt 3 never invents these)
-Education:
+Education: [Only if you want it on the resume. The spoken version is under Education in the Vendor Call Facts below]
 Certifications:
 
-VENDOR CALL FACTS (used by Prompt 2 for the vendor-call step; never printed on the resume)
-Answer these exactly as you want them said to a vendor or recruiter. Anything left blank is treated as unknown, and the assistant will say it will confirm by email instead of guessing.
-Use real calendar dates, never "in a couple of weeks". Update "Facts last confirmed on" whenever you review this section.
+VENDOR CALL FACTS (used by Prompt 2 for the vendor-call step; never printed on the resume; Prompt 3 ignores this heading and every section after it)
+Answer these exactly as you want them said to a vendor or recruiter.
+- Blank = unknown: the assistant will say it will confirm by email instead of guessing.
+- "N/A" = not applicable to me: the assistant will not ask about it or bring it up.
+- Use real calendar dates, never "in a couple of weeks". Update "Facts last confirmed on" whenever you review this section.
+- Only enter facts that are true: the assistant repeats them to vendors exactly as written and never adds to them.
 Facts last confirmed on: [YYYY-MM-DD]
+The sections run in the order you should fill them: your own facts first (1 to 5), then the standard answers (6), which most candidates keep as suggested.
 
-BACKGROUND (spoken only; vendors ask these even if they are not on the resume)
+1. BACKGROUND (spoken only; vendors ask these even if they are not on the resume)
 Education: [Degree, university, graduation year, spoken exactly as you want it said]
-Where each job was worked: [One line per employer: US onsite / US remote / India / other, with dates. Used for "US experience" and "worked from India" questions]
-Total US work experience: [For example: "About 4 years" or blank]
-Offshore (India-based) work for US clients: [Yes or No; if Yes, how it was structured and how you collaborated]
+Degree dates and place: [Level, start and end dates, where it was done. Needed only when your studies overlap a job; otherwise N/A]
+How work and study overlapped: [Only if true, in your own words, for example "co-op, later internship during my bachelor's" or "CPT after my first semester". Otherwise N/A]
+First US entry date: [YYYY-MM-DD, the day you first entered the US. If you have always lived and worked in the US, write "Always in the US"]
+Where each job was worked: [One line per employer: US onsite / US remote / India / other, with dates. Used for the US experience, offshore and student-work questions]
+Total US work experience: [Optional. The assistant counts it from your first job worked in the US; fill it only to cross-check, for example "About 3 years"]
+Offshore (India-based) work for US clients: [Yes or No, or N/A; if Yes, how it was structured and how you collaborated]
 
-AUTHORIZATION
-Work authorization: [For example: OPT EAD / H-1B / GC EAD / US citizen / green card]
+2. AUTHORIZATION
+Work authorization: [For example: OPT EAD / STEM OPT EAD / H-1B / GC EAD / green card / US citizen]
 Authorization valid through: [Date; said only if asked]
-Employer-specific eligibility wording: [How you want "authorized to work for this employer" answered]
-Sponsorship needed now or in the future: [Yes / No / Not yet decided, and any plan, such as a future status change]
+Employer-specific eligibility wording: [How you want "authorized to work for this employer" answered, in your own words]
+Sponsorship needed now or in the future: [Yes / No / Not yet decided, and any plan, such as a future status change or an employer that files for you]
 
-ENGAGEMENT AND RATE
+3. ENGAGEMENT AND RATE
 Engagement type you accept: [For example: "C2C or C2H first". Mark C2C, C2H, W2 and 1099 each Yes or No]
-W-2 conversion: [If a role is W2, do you ask the recruiter to convert it to C2H? Yes / No]
-C2H term I ask for: [For example: 6 months, then conversion]
-C2C entity available: [Yes or No. Entity details are given only after an offer, never on a first call]
-Rate expectation: [For example: "$55 to $60 per hour on C2C"]
+Rate expectation: [For example: "$55 to $60 per hour on C2C; aim higher for senior roles"]
 Lowest rate you will accept: [Number and engagement type; never said to a vendor]
-Rate flexibility: [For example: "Flexible for a long contract" or "Firm"]
+Rate flexibility: [For example: "Flexible for a long contract", "Open to negotiation through my employer" or "Firm"]
 Current compensation: [Leave blank to deflect; or the exact words you want said]
 
-AVAILABILITY AND LOGISTICS
-Current employment status: [Include the actual end date, for example: "Contract ends 2026-12-15"]
-Notice period: [For example: 2 weeks]
-Availability / start date: [For example: "Two weeks after an offer" or a date]
+4. MY EMPLOYER OF RECORD (the employer I work through, for example a consulting or staffing employer; spoken only; write N/A if you contract directly)
+Employer name: [Name, if it may be said]
+Relationship: [For example: W-2 employee; E-Verify employer Yes / No]
+Contract structure: [Do contracts and C2C engagements run through this employer? Yes / No]
+Employer contact for vendors: [Name, email, phone]
+Who negotiates rate and signs: [Me / my employer]
+What may be said before an offer: [For example: relationship Yes; contact only after the vendor confirms interest; EIN, insurance and bank details never]
+
+5. AVAILABILITY AND LOCATION
+Current employment status: [Include the actual end date, for example: "Contract ends 2026-12-15". The assistant turns it into natural wording from today's date]
+Notice period: [For example: 2 weeks. Said as written, whatever your contract end date]
+Availability / start date: [For example: "Right after my notice period" or a date]
 Interview availability: [Best days, time windows and time zone]
-In-person interview: [Yes / Only after initial rounds / No]
-Technical interview or skills assessment: [Yes / No / Depends; any format limits]
 Current location: [City, State]
 Relocation / travel: [For example: "Open to relocate" / "Remote only" / "Local to Dallas, TX only"]
 Work arrangement preference: [Remote / Hybrid / Onsite, and any limits]
 
-OTHER THINGS VENDORS ASK
-References: [Available or not; contacts and their permission, or "ask me first"]
+6. STANDARD ANSWERS (most candidates answer these the same way; keep the suggestion in brackets if it is true for you, or replace it)
+W-2 conversion: [If a role is W2, do you ask the recruiter to convert it to C2H? Yes / No]
+C2H term I ask for: [For example: 6 months, then conversion]
+C2C entity available: [Yes or No. Entity details are given only after an offer, never on a first call]
+In-person interview: [Yes / Only after initial rounds / No]
+Technical interview or skills assessment: [Yes / No / Depends; any format limits]
 Background check / drug test: [Consent Yes / No]
 Clearance: [None / level]
-Anything else: [For example: laptop, camera, LinkedIn]
+Relieving or experience letters: [Available on request / some employers / No]
+References: [Available or not, for which projects (for example the two most recent), and whether to ask you first. Contact details are in the section below]
+Anything else: [For example: laptop, camera, languages, certifications]
+
+REFERENCES FOR MY TWO MOST RECENT PROJECTS (part of the Vendor Call Facts; shared by email only after the reference has agreed; never printed on the resume)
+Reference 1 - project and employer: [Employer, project, and the dates I worked with this person]
+Reference 1 - name and role: [Name, and their role, for example direct manager, tech lead]
+Reference 1 - contact: [Email and phone]
+Reference 1 - permission: [Agreed to be contacted: Yes / Ask first]
+Reference 1 - can speak to: [For example: my role, tools, dates, delivery]
+Reference 2 - project and employer: [Same fields as Reference 1]
+Reference 2 - name and role:
+Reference 2 - contact:
+Reference 2 - permission:
+Reference 2 - can speak to:

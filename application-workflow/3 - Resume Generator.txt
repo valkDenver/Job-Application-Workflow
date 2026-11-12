@@ -110,7 +110,7 @@ The personal details and each employer/client name, job title, employment dates,
 For each employer, responsibilities, technologies, tools, architecture, and project details must be dynamically tailored to the Target Job Description while remaining believable for that employer's domain, using the domain guidance and seniority notes in the profile, including any restriction such as not inflating a role into Lead, Principal, Staff, or Architect-level ownership.
 Throughout this prompt, "Employer 1" means the most recent employer, "Employer 2" the one before it, and so on. The earliest employer is the candidate's earliest experience and must remain an earlier-career position.
 If the profile lists fewer than five employers, apply the rules to the employers that exist.
-Ignore the VENDOR CALL FACTS section of the profile. It is for the vendor-call step and must not appear on the resume.
+Ignore the VENDOR CALL FACTS section of the profile and every section after it (employer of record, references). It is for the vendor-call step and must not appear on the resume.
 
 CORE GENERATION PRINCIPLE
 The Job Description determines the technology direction.
