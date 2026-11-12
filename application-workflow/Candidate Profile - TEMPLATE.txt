@@ -57,14 +57,44 @@ Certifications:
 
 VENDOR CALL FACTS (used by Prompt 2 for the vendor-call step; never printed on the resume)
 Answer these exactly as you want them said to a vendor or recruiter. Anything left blank is treated as unknown, and the assistant will say it will confirm by email instead of guessing.
+Use real calendar dates, never "in a couple of weeks". Update "Facts last confirmed on" whenever you review this section.
+Facts last confirmed on: [YYYY-MM-DD]
+
+BACKGROUND (spoken only; vendors ask these even if they are not on the resume)
+Education: [Degree, university, graduation year, spoken exactly as you want it said]
+Where each job was worked: [One line per employer: US onsite / US remote / India / other, with dates. Used for "US experience" and "worked from India" questions]
+Total US work experience: [For example: "About 4 years" or blank]
+Offshore (India-based) work for US clients: [Yes or No; if Yes, how it was structured and how you collaborated]
+
+AUTHORIZATION
 Work authorization: [For example: OPT EAD / H-1B / GC EAD / US citizen / green card]
-Engagement type you accept: [For example: C2C, 1099, W2]
-Rate expectation: [For example: "$55 to $60 per hour on C2C" and the lowest you will accept]
-Availability / start date: [For example: "Two weeks after an offer" or a date]
+Authorization valid through: [Date; said only if asked]
+Employer-specific eligibility wording: [How you want "authorized to work for this employer" answered]
+Sponsorship needed now or in the future: [Yes / No / Not yet decided, and any plan, such as a future status change]
+
+ENGAGEMENT AND RATE
+Engagement type you accept: [For example: "C2C or C2H first". Mark C2C, C2H, W2 and 1099 each Yes or No]
+W-2 conversion: [If a role is W2, do you ask the recruiter to convert it to C2H? Yes / No]
+C2H term I ask for: [For example: 6 months, then conversion]
+C2C entity available: [Yes or No. Entity details are given only after an offer, never on a first call]
+Rate expectation: [For example: "$55 to $60 per hour on C2C"]
+Lowest rate you will accept: [Number and engagement type; never said to a vendor]
+Rate flexibility: [For example: "Flexible for a long contract" or "Firm"]
+Current compensation: [Leave blank to deflect; or the exact words you want said]
+
+AVAILABILITY AND LOGISTICS
+Current employment status: [Include the actual end date, for example: "Contract ends 2026-12-15"]
 Notice period: [For example: 2 weeks]
+Availability / start date: [For example: "Two weeks after an offer" or a date]
+Interview availability: [Best days, time windows and time zone]
+In-person interview: [Yes / Only after initial rounds / No]
+Technical interview or skills assessment: [Yes / No / Depends; any format limits]
 Current location: [City, State]
 Relocation / travel: [For example: "Open to relocate" / "Remote only" / "Local to Dallas, TX only"]
 Work arrangement preference: [Remote / Hybrid / Onsite, and any limits]
-Current employment status: [For example: "Currently on a contract ending in December" / "Between projects"]
-Interview availability: [Best days and times, time zone]
-Anything else vendors ask you: [For example: references available, background check consent, clearance]
+
+OTHER THINGS VENDORS ASK
+References: [Available or not; contacts and their permission, or "ask me first"]
+Background check / drug test: [Consent Yes / No]
+Clearance: [None / level]
+Anything else: [For example: laptop, camera, LinkedIn]

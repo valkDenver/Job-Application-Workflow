@@ -21,7 +21,7 @@ Taken from the Job Title of that Job ID in the Master Job Tracker. (If no Job ID
 TARGET JOB DESCRIPTION
 Taken from the complete Job Description stored for that Job ID on the JD Store sheet of the Master Job Tracker. (If no Job ID is supplied, use the complete Job Description I paste here instead: [PASTE COMPLETE JOB DESCRIPTION HERE])
 VENDOR CALL NOTES
-The "claims made on the call" recorded in the tracker's Notes for that Job ID by the vendor-call step (years of experience per skill, projects and tools mentioned, and commitments such as rate or availability). If none are recorded, skip this input.
+The "Call claims:" line recorded in the tracker's Notes for that Job ID by the vendor-call step (years of experience per skill, projects and tools mentioned). Use only that line. Ignore the other call lines ("Rate and terms:", "Authorization and availability:", "Right to represent:", "Owed to vendor:"): they are not resume claims and never reason to reject or change a resume. For Notes written before these labels existed, use the paragraph that records what was claimed on the call. If none are recorded, skip this input.
 The resume must stay consistent with these call notes: do not contradict the years of experience, tools, or projects stated on the call. If a call note conflicts with a fixed fact, the chronological-accuracy rule, or any other rule in this prompt, do not silently change either one; follow this prompt's rules and tell me about the conflict after the resume is delivered.
 SAME RECRUITER OR AGENCY CHECK (BEFORE GENERATING A NEW RESUME; A SOFT WARNING, NEVER A BLOCKER)
 Run this only when you are about to generate a new resume, that is, after the Resume Library Check below did not reuse an existing resume. Run: python Tools/tracker_tool.py related "<tracker file>" JOB-#### (it prints this job's title and niche, then only the earlier jobs of the same recruiter or staffing company that already have a resume; it never prints other rows). If you cannot run Python, say so and skip this check; do not read the whole workbook for it.
@@ -53,7 +53,7 @@ After the Industry-Fit Gate has passed and before generating anything, look for 
 4. If the best-scoring resume reaches 85% or higher, reuse it: do NOT generate a new resume. Copy it into this job's folder with python Tools/resume_path.py reuse --source "<full path of that resume>" --tech "<technology>" [--specialty "<specialty>"] --job JOB-#### --tracker "<tracker file>" (leave out --job and --tracker when no Job ID was used). The original is never moved or changed. Tell me the resume's filename, its ATS match score, the next-best matches with their scores, and the full path of the copy.
 5. If the best score is below 85%, tell me the best existing score and filename, then continue with the full generation process below.
 6. If the folder is empty, does not exist yet (the helper creates it for future use), or cannot be accessed, say so and continue with the full generation process.
-7. If Vendor Call Notes exist and an existing resume contradicts them, do not reuse that resume; treat it as not qualifying and tell me why.
+7. If the Vendor Call Notes (the "Call claims:" line) exist and an existing resume contradicts them, do not reuse that resume; treat it as not qualifying and tell me why.
 
 Before generating the resume, analyze the entire Job Description and identify:
 •	Primary technical responsibilities
