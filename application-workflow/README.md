@@ -64,7 +64,8 @@ Good to know:
 
 **Vendor call (Module 02)**: `Prepare JOB-1014 for vendor call.` [attach the tracker and your Candidate Profile]
 - The briefing checks the tracker: if this recruiter already has one of your resumes it tells you, and for a similar role it offers to use that resume as the background for the call (the answers still follow this job's description).
-- Practice or answer questions during the call. When it ends, type `The call is finished.`
+- It starts with a fact check: it lists blank or stale Vendor Call Facts (education, where each job was worked, sponsorship, lowest rate, references and so on) so you can fill them before the call. Each answer carries a tag: PROFILE, JOB, CONFIRM or NEEDS JOB.
+- Practice or answer questions during the call. Say `practice` for a mock screening, or give no Job ID for general answers without a tracker update. When the call ends, type `The call is finished.`; the Notes then record claims, rate and terms, right to represent, and what you owe the vendor.
 
 **Resume (Module 03)**: `Run Module 03 for JOB-1014.` [attach the tracker and your Candidate Profile]; can be done before or after the call.
 - It checks the matching technology folder first and reuses a resume scoring 85% or more by copying it into the job's folder; otherwise it builds a Word resume, runs `Tools/resume_check.py` on it until it passes, and shows the ATS score.
@@ -158,7 +159,7 @@ Make a backup of your tracker and profile first, and keep your own files; the te
 1. Install Python and `pip install openpyxl` (above).
 2. If your tracker lacks the Skip Reason, Tier Reason and Email Drafted Date columns, or its filters stop at row 1000: close the tracker in Excel, then run `python Tools/tracker_tool.py add-columns "<your tracker>.xlsx"` (adds Skip Reason, Tier Reason and Email Drafted Date) and `python Tools/tracker_tool.py extend-ranges "<your tracker>.xlsx"` (stretches filters, dropdowns and the Dashboard to row 100000). Both are safe to repeat.
 3. If you type statuses in Excel, set the Pipeline Status dropdown (Data > Data Validation > List) to `REVIEW,SHORTLIST,CALL READY,VENDOR CALLED,RESUME NEEDED,RESUME CREATED,EMAIL DRAFTED,APPLIED,FOLLOW-UP,CLOSED,SKIPPED`. Old FOUND and SELECTED rows still work.
-4. Fill in Work authorization and the other Vendor Call Facts in your profile. Follow-up emails use it only when a recruiter asks.
+4. Fill in Work authorization and the other Vendor Call Facts in your profile (the template now also asks for education, where each job was worked, sponsorship, lowest rate, assessment and in-person stance, references, and a "Facts last confirmed on" date; use real dates, not "in two weeks"). Follow-up emails use it only when a recruiter asks.
 5. Resumes you made earlier are not in the current folder structure, so the first Module 03 run for each technology builds a new one. To reuse an older resume, copy it into `Documents/Job Application Workflow/Resumes/<Technology>/<any job folder>/`.
 6. If you saved the prompts as Claude Projects or Custom GPTs, paste in the new text.
 
