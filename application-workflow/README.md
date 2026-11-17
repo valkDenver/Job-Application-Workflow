@@ -87,6 +87,7 @@ Good to know:
 4. They replied or asked for your resume: reply email, resume attached.
 
 - Before drafting a new email it searches your Gmail sent mail for that recruiter's address. A similar earlier role is just mentioned; a different technology gets a warning and a question. Unsent drafts never count as sent.
+- When a run covers several jobs and some get no draft: a job that does not fit your profile is listed with the reason and marked SKIPPED only after you confirm. Fixable ones (no email, no resume, same recruiter already emailed) are never skipped; they get a dated Notes line with the reason.
 - If a phone number is listed, call first, then run Module 04 and tell it what happened. Each run gives 3 differently worded versions; pick one and a Gmail draft is created. Attach the resume if the connector could not (cases 1 and 4), review, and send it yourself.
 - Every first email has a short friendly intro line, states your years of experience matched to the job description, names 2 or 3 of the job's required tools, and gives one plain reason the role interests you, in 90 to 120 words. `Tools/email_check.py` checks each email before the draft is created.
 - Emails end with your first name and email only. Say "include my phone" (or LinkedIn) to add them.

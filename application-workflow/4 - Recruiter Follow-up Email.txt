@@ -99,6 +99,12 @@ Use the Gmail connector, read-only, with the Recruiter Email from the tracker. S
 6. Only unsent drafts to this address (nothing sent) about a different technology: mention it in one line and carry on; do not stop.
 7. Ask at most once per run. Never send, delete, label or change any email because of this check, never change the tracker because of it, and never mention anyone's ethnicity or nationality.
 
+5B. JOBS WITH NO DRAFT (SKIP ONLY WITH MY OK)
+When a run covers several jobs and some get no draft, sort each one into one of two groups and list them with the reason. Never set SKIPPED on your own.
+- MY DECISION: the job does not fit (the industry or technology is not relatable to my profile, or the JD is clearly outside my work). Say why in one line and ask me. Only after I confirm, run: python Tools/tracker_tool.py skip "<tracker file>" JOB-#### --reason "<reason>" (a job already APPLIED or in FOLLOW-UP also needs --force, so ask me first). If I do not confirm, leave it as it is.
+- FIXABLE OR OTHER: no Recruiter Email, no Resume Filename, an email already drafted for this recruiter, a generic inbox, a Gmail problem, a job still waiting on a call. Do NOT skip these. Leave Pipeline Status alone and add a dated Notes line with the reason: python Tools/tracker_tool.py set "<tracker file>" JOB-#### --note "<date>: no email drafted: <reason>". If the job is SKIPPED or CLOSED the tool refuses; that is already a dropped job, so just report it.
+An email already drafted for the same recruiter is not a reason to skip: draft one combined email naming both roles (as in Section 10A, "Several jobs, one recruiter") or ask me. Finish the run with one line per undrafted job: the Job ID, the group, the reason, and what I can do next.
+
 6. EMAIL REQUIREMENTS (all situations)
 Create a Gmail draft with:
 - To: the recruiter's email from the tracker
