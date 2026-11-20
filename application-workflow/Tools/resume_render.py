@@ -94,8 +94,9 @@ def keep_next(p, together=False):
 
 
 class Renderer:
-    def __init__(self, t):
+    def __init__(self, t, key="custom"):
         self.t = t
+        self.key = key
         self.font = t["font"]
         self.body = t["body_pt"]
         self.margin = t["margins_in"]
@@ -358,6 +359,11 @@ class Renderer:
 
     # ---------- page layouts ----------
     def render(self, c):
+        cp = self.doc.core_properties
+        cp.category = "resume-template:" + self.key  # resume_check.py reads this to know the layout rules
+        cp.author = c["name"]
+        cp.title = c["name"] + " - Resume"
+        cp.comments = ""
         self.footer(c)
         getattr(self, "layout_" + self.t.get("layout", "single"))(c)
         return self.doc
@@ -383,9 +389,12 @@ class Renderer:
         for i, (row, (title, fill)) in enumerate(zip(tbl.rows, parts)):
             top = h.get("first_before", 4) if i == 0 else h.get("before", 8)
             prev = self.into(row.cells[0], hw)
-            for j, w in enumerate(title.split(" ", 1)):
-                p = self.para(before=top if j == 0 else 0)
-                self.run(p, w, bold=True, pt=h["pt"], color=h.get("color"), spacing=h.get("spacing"))
+            p = self.para(before=top)  # one paragraph, two lines: ATS and the checker read one title
+            first, _, second = title.partition(" ")
+            self.run(p, first, bold=True, pt=h["pt"], color=h.get("color"), spacing=h.get("spacing"))
+            r = self.run(p, "", bold=True, pt=h["pt"], color=h.get("color"))
+            r.add_break()
+            self.run(p, second, bold=True, pt=h["pt"], color=h.get("color"), spacing=h.get("spacing"))
             self.back(prev)
             if i and t.get("hang_rule"):
                 for cell in row.cells:
@@ -518,7 +527,7 @@ def _count_soffice(paths):
     return out
 
 
-def render_fit(t, content, out, pages):
+def render_fit(t, content, out, pages, key="custom"):
     """Render at every scale level, keep the loosest one that ends on `pages` pages."""
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
@@ -530,11 +539,11 @@ def render_fit(t, content, out, pages):
                 continue
             seen.add(sig)
             f = Path(tmp) / f"fit_{s:.2f}.docx"
-            Renderer(ts).render(content).save(f)
+            Renderer(ts, key).render(content).save(f)
             files.append((s, ts, f))
         counts = count_pages([f for _, _, f in files])
         if counts is None:
-            Renderer(t).render(content).save(out)
+            Renderer(t, key).render(content).save(out)
             return "FIT skipped: no layout engine found (needs Microsoft Word on Windows, or LibreOffice); rendered at the template's normal size"
         fitting = [(s, ts, f, c) for (s, ts, f), c in zip(files, counts) if c[0] <= pages]
         if fitting:
@@ -572,15 +581,34 @@ def main(argv=None):
     if key not in templates:
         print(f"ERROR unknown template '{a.template}'. Choose one of: {', '.join(templates)}")
         return 2
-    content = json.loads(Path(a.content).read_text(encoding="utf-8"))
+    src = Path(a.content)
+    try:
+        content = json.loads(src.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        print(f"ERROR cannot read the content JSON {src}: {e}")
+        return 2
+    missing = [k for k in ("name", "contact", "summary", "skills", "employers") if not content.get(k)]
+    missing += [f"employers[{i}].{k}" for i, e in enumerate(content.get("employers", []))
+                for k in ("header", "domain", "usecase", "bullets", "stack") if not e.get(k)]
+    if missing:
+        print(f"ERROR the content JSON is missing: {', '.join(missing)}")
+        return 2
     out = Path(a.out)
+    if out.suffix.lower() != ".docx":
+        print(f"ERROR the output must be a .docx file: {out}")
+        return 2
     out.parent.mkdir(parents=True, exist_ok=True)
     if a.pages > 0:
-        note = render_fit(templates[key], content, out, a.pages)
+        note = render_fit(templates[key], content, out, a.pages, key)
     else:
-        Renderer(templates[key]).render(content).save(out)
+        Renderer(templates[key], key).render(content).save(out)
         note = "no fitting"
+    # Keep the content beside the resume, so it can be re-rendered in another template later.
+    side = out.with_suffix(".json")
+    if side.resolve() != src.resolve():
+        side.write_text(json.dumps(content, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"saved {out} (template: {key}); {note}")
+    print(f"CONTENT: {side}")
     return 0
 
 

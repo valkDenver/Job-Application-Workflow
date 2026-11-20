@@ -31,7 +31,8 @@ Commands:
   reuse --source FILE --tech T [--specialty S] [--job JOB-#### --tracker FILE] [--new]
                                  copies an existing resume (the library check found it good enough) into this job's folder, built the
                                  same way as `path`, keeping the same file name. The original is never moved or changed, and nothing is
-                                 overwritten (exit code 3 if that file name is already in the job folder).
+                                 overwritten (exit code 3 if that file name is already in the job folder). Its content file
+                                 (<name>.json, saved by resume_render.py) is copied too when there is one (CONTENT line).
 
   find --job JOB-#### [--filename F]
                                  locates the saved resume of that job: looks through Resumes/<Technology>/<Specialty>/ for job folders that start with the
@@ -465,6 +466,14 @@ def cmd_reuse(a):
     out(f"FOLDER: {folder}")
     out(f"FILE NAME: {os.path.basename(src)}")
     out(f"FULL PATH: {dest}")
+    # resume_render.py keeps the resume's content beside it as <name>.json; copy it too, so the
+    # copy can be re-rendered in the candidate's current template.
+    src_json, dest_json = os.path.splitext(src)[0] + ".json", os.path.splitext(dest)[0] + ".json"
+    if os.path.isfile(src_json) and not os.path.exists(dest_json):
+        shutil.copy2(src_json, dest_json)
+        out(f"CONTENT: {dest_json}")
+    else:
+        out("CONTENT: none (resume built before templates; it keeps its original layout)")
     return 0
 
 

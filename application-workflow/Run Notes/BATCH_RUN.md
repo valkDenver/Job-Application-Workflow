@@ -64,11 +64,11 @@ Files:
 - Module 03: <full path of 3 - Resume Generator.txt> (read it fully once, in parts if needed)
 - Tracker (read only for you): <full path of the tracker>
 - Candidate Profile: <full path of the profile>
-- Run every "python Tools/..." command from <full path of the application-workflow folder> (<Windows | Mac: use python3>). Build the Word file with: <the DOCX Python found before step 1> (it has python-docx).
+- Run every "python Tools/..." command from <full path of the application-workflow folder> (<Windows | Mac: use python3>). Render the Word file with Tools/resume_render.py, run by <the DOCX Python found before step 1> (it has python-docx), in the template named in the Candidate Profile.
 - Work folder: <run folder>/<Job ID>/
 Run setting: <the candidate's run setting, word for word>
 
-Run Module 03 in full for this job: Industry-Fit Gate, employer tool evidence check, library check, generation, saving with resume_path.py path, its final validation, and resume_check.py until 0 FAIL, then every WARN fixed or, if it is a false alarm, kept and named in your notes (as Module 03 says).
+Run Module 03 in full for this job: Industry-Fit Gate, employer tool evidence check, library check, generation (content file, then resume_render.py to the path resume_path.py path prints), its final validation, and resume_check.py until 0 FAIL, then every WARN fixed or, if it is a false alarm, kept and named in your notes (as Module 03 says).
 Batch rules (they override Module 03 where they differ): do not write the tracker (skip TRACKER UPDATE and the tracker step in gate rule 2); skip the SAME RECRUITER OR AGENCY CHECK; you cannot ask anything, so take the default that lets the job continue and note it; skip the RESUME PATH line.
 
 When done, write your result line to <run folder>/<Job ID>/result.txt, then reply with only that line:

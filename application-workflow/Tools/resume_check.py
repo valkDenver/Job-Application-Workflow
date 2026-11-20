@@ -5,27 +5,35 @@ Usage:  python resume_check.py <resume.docx> [--profile "<Candidate Profile.txt>
                                 [--headline "Ansible"] [--exempt "Java"] [--required "Ansible,Cassandra|MongoDB"] [--preferred "Jenkins,Linux"]
                                 (on a Mac: python3 resume_check.py ...)
 
+The layout is checked against the template the resume was rendered with (Tools/resume_render.py records it in the file;
+--template overrides it; a file without one is checked as classic). Templates are in Tools/resume_templates.json.
+
 What it checks (each line is PASS, WARN or FAIL):
-  layout     name/contact/headings (bold, underlined, sizes), Arial, 0.65 inch margins, no tables/text boxes/pictures/page breaks,
-             hidden word-break characters, markdown asterisks, the blank lines around each Tech Stack, bullets justified
+  layout     the template's font, name and contact alignment, heading style, margins and body size within the template's
+             auto-fit limits, no tables (except a table-based template), no text boxes/pictures/columns/page breaks, hidden
+             word-break characters, markdown asterisks, bullet alignment, headline length
   bullets    count per employer, word bands (short 10-15, medium 16-25, long 26-35), the 25/50/25 mix, at least one short and one long,
              no more than 3 in a row, first 3-4 bullets of employers 1 and 2 not short, no bold, opening verbs, banned phrases,
              stiff phrasing, first-person pronouns, repeated connecting phrases, employer name inside bullets
   use cases  two sentences, word range per employer, at most 2 tools (taken from the Tech Stack), each tool also named in a bullet
-  stacks     every Tech Stack item and every Technical Skills item appears in the bullets; Tech Stack bold+italic; skills labels bold
+  stacks     every Tech Stack item and every Technical Skills item appears in the bullets; Tech Stack label bold and line italic;
+             skills labels bold
   summary    one paragraph, technologies bold at most once and named in the bullets
-  length     total words against 1,750-2,050
+  length     total words against 1,450-1,650 (three pages)
   --profile  name, contact line, employer names, titles and dates match the Candidate Profile exactly
   --tools    each tool named in at most 2 employers (3 for --headline; --exempt tools are skipped, and are not counted as tools in Project Use Cases)
   --required/--preferred  the ATS match score with Module 03's credits (use A|B for either-or keywords)
 
 Exit code 0 = no FAIL, 1 = at least one FAIL, 2 = the file could not be read.
 """
-import argparse, re, sys, zipfile
+import argparse, json, os, re, sys, zipfile
 import xml.etree.ElementTree as ET
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
-RANGES = [(11, 15), (10, 15), (8, 12), (8, 12), (7, 10)]
+TEMPLATES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resume_templates.json")
+STAMP = "resume-template:"  # resume_render.py writes "resume-template:<key>" into the file's Category property
+WORDS_MIN, WORDS_MAX = 1450, 1650
+RANGES = [(9, 12), (8, 11), (6, 9), (6, 9), (5, 7)]
 USE_CASE_WORDS = [(30, 45), (30, 45), (25, 40), (25, 40), (20, 35)]
 BANNED = ["responsible for", "worked on", "involved in", "utilized", "leveraged", "played a key role", "successfully", "various",
           "robust solutions", "cutting-edge solutions", "seamless solutions"]
@@ -56,7 +64,15 @@ def flag(rpr, tag):
 class Run:
     def __init__(self, r):
         rpr = r.find(W + "rPr")
-        self.text = "".join((t.text or "") for t in r.iter(W + "t"))
+        parts = []
+        for ch in r:
+            if ch.tag == W + "t":
+                parts.append(ch.text or "")
+            elif ch.tag == W + "tab":
+                parts.append("\t")
+            elif ch.tag in (W + "br", W + "cr") and ch.get(W + "type") != "page":
+                parts.append(" ")
+        self.text = "".join(parts)
         self.bold = flag(rpr, "b")
         self.italic = flag(rpr, "i")
         u = rpr.find(W + "u") if rpr is not None else None
@@ -103,10 +119,37 @@ def load(path):
         sys.stderr.write(f"Cannot read {path}: {e}\n")
         sys.exit(2)
     body = root.find(W + "body")
-    paras = [Para(p) for p in body.findall(W + "p")]
+    paras = [Para(p) for p in body.iter(W + "p")]  # document order, including text inside table cells
     xml = z.read("word/document.xml").decode("utf-8", "ignore")
     sect = body.find(W + "sectPr")
-    return paras, xml, sect, root
+    stamp = None
+    try:
+        core = z.read("docProps/core.xml").decode("utf-8", "ignore")
+        m = re.search(re.escape(STAMP) + r"([A-Za-z0-9_]+)", core)
+        stamp = m.group(1) if m else None
+    except KeyError:
+        pass
+    return paras, xml, sect, stamp
+
+
+def load_template(key):
+    """The template preset for key, or classic when the key or the templates file is missing."""
+    try:
+        with open(TEMPLATES_FILE, encoding="utf-8") as f:
+            data = {k: v for k, v in json.load(f).items() if not k.startswith("_")}
+    except (OSError, ValueError):
+        add("WARN", "layout", f"cannot read {TEMPLATES_FILE}; layout checked against classic defaults")
+        data = {}
+    if key and key in data:
+        return key, data[key]
+    if key:
+        add("WARN", "layout", f"unknown template '{key}'; layout checked as classic")
+    else:
+        add("WARN", "layout", "the file names no template (not rendered with resume_render.py); layout checked as classic")
+    return "classic", data.get("classic", {"font": "Arial", "body_pt": 11, "margins_in": 0.65,
+                                            "name": {"pt": 20, "align": "center", "bold": True},
+                                            "contact": {"align": "center"},
+                                            "heading": {"underline": True}})
 
 
 def words(s):
@@ -135,7 +178,12 @@ def split_sections(paras):
     return idx
 
 
+LABELS = ("Domain:", "Tech Stack:", "Project Use Case:")
+
+
 def parse_employers(paras, start):
+    """Employer blocks. A header is either 'Employer | Title | Dates' on one line, or 'Employer<tab>Dates' with the
+    job title on the next line (split style); both are stored as hdr_text 'Employer | Title | Dates'."""
     emps, cur, i = [], None, start
     n = len(paras)
     while i < n:
@@ -143,9 +191,21 @@ def parse_employers(paras, start):
         if not t:
             i += 1
             continue
-        if re.match(r"^.+ \| .+ \| .+$", t) and not p.bullet and not t.startswith(("Domain:", "Tech Stack:", "Project Use Case:")):
-            cur = {"hdr": p, "domain": None, "use": None, "bullets": [], "stack": None, "after_bullets_blank": None, "after_stack_blank": None, "start": i}
+        plain = not p.bullet and not t.startswith(LABELS)
+        if plain and re.match(r"^.+ \| .+ \| .+$", t):
+            cur = {"hdr": p, "hdr_text": t, "domain": None, "use": None, "bullets": [], "stack": None, "start": i}
             emps.append(cur)
+        elif plain and "\t" in t:
+            company, _, dates = t.partition("\t")
+            j = i + 1
+            while j < n and not paras[j].text.strip():
+                j += 1
+            title = paras[j].text.strip() if j < n and not paras[j].text.strip().startswith(LABELS) else ""
+            cur = {"hdr": p, "hdr_text": f"{company.strip()} | {title} | {dates.strip()}", "domain": None, "use": None,
+                   "bullets": [], "stack": None, "start": i}
+            emps.append(cur)
+            if title:
+                i = j
         elif cur is not None:
             if t.startswith("Domain:"):
                 cur["domain"] = p
@@ -153,37 +213,52 @@ def parse_employers(paras, start):
                 cur["use"] = p
             elif t.startswith("Tech Stack:"):
                 cur["stack"] = p
-                # blank paragraphs before it (after the last bullet) and after it
-                j, c = i - 1, 0
-                while j >= 0 and not paras[j].text.strip():
-                    c += 1
-                    j -= 1
-                cur["after_bullets_blank"] = c
-                j, c = i + 1, 0
-                while j < n and not paras[j].text.strip():
-                    c += 1
-                    j += 1
-                cur["after_stack_blank"] = c if j < n else None
             elif p.bullet:
                 cur["bullets"].append(p)
         i += 1
     return emps
 
 
-def check_layout(paras, xml, sect, idx):
+def find_contact(paras):
+    """Index of the contact line: the first of lines 2-4 that holds an email address (a headline may come before it)."""
+    for i in range(1, min(4, len(paras))):
+        if "@" in paras[i].text:
+            return i
+    return 1
+
+
+def body_size(emps, t):
+    sizes = [r.size for e in emps for b in e["bullets"] for r in b.runs if r.text.strip() and r.size]
+    return max(set(sizes), key=sizes.count) if sizes else t.get("body_pt", 11)
+
+
+def align_ok(jc, want):
+    want = want or "left"
+    return {"center": jc == "center", "right": jc in ("right", "end"),
+            "left": jc in ("", "left", "start"), "justify": jc == "both"}[want]
+
+
+def check_layout(paras, xml, sect, idx, key, t, emps):
     a = "layout"
     if not paras:
         add("FAIL", a, "document is empty")
         return
-    name, contact = paras[0], paras[1] if len(paras) > 1 else None
-    if name.jc == "center" and name.all_bold() and any(r.size == 20 for r in name.runs):
-        add("PASS", a, "candidate name centered, bold, 20 pt")
+    add("INFO", a, f"template: {key}")
+    tn, tc, th = t.get("name", {}), t.get("contact", {}), t.get("heading", {})
+    ci = find_contact(paras)
+    name, contact = paras[0], paras[ci] if len(paras) > ci else None
+    ok = align_ok(name.jc, tn.get("align", "center")) and (name.all_bold() or not tn.get("bold", True)) \
+        and (not tn.get("pt") or any(r.size == tn["pt"] for r in name.runs))
+    add("PASS" if ok else "FAIL", a, f"candidate name: {tn.get('align', 'center')}, {tn.get('pt')} pt"
+        + (", bold" if tn.get("bold", True) else "") + ("" if ok else " is required by the template"))
+    if contact is not None and align_ok(contact.jc, tc.get("align", "center")):
+        add("PASS", a, f"contact line {tc.get('align', 'center')}-aligned")
     else:
-        add("FAIL", a, "candidate name must be centered, bold, 20 pt")
-    if contact is not None and contact.jc == "center" and any(r.size == 11 for r in contact.runs):
-        add("PASS", a, "contact line centered, 11 pt")
-    else:
-        add("FAIL", a, "contact line must be centered, 11 pt")
+        add("FAIL", a, f"contact line must be {tc.get('align', 'center')}-aligned")
+    for p in paras[1:ci]:
+        n = words(p.text)
+        if n > 14:
+            add("WARN", a, f"headline is {n} words; keep it to one short line (about 8-14 words)")
     order = ["PROFESSIONAL SUMMARY", "TECHNICAL SKILLS", "PROFESSIONAL EXPERIENCE"]
     if [idx.get(k, -1) for k in order] == sorted(idx.get(k, -1) for k in order) and all(k in idx for k in order):
         add("PASS", a, "the three section titles are present, in order")
@@ -192,25 +267,37 @@ def check_layout(paras, xml, sect, idx):
     for k in order:
         if k in idx:
             p = paras[idx[k]]
-            ok = p.all_bold() and all(r.underline for r in p.runs if r.text.strip()) and any(r.size == 12 for r in p.runs)
+            ok = p.all_bold() and (all(r.underline for r in p.runs if r.text.strip()) or not th.get("underline"))
             if not ok:
-                add("FAIL", a, f"{k} must be bold, underlined, 12 pt")
+                add("FAIL", a, f"{k} must be bold" + (" and underlined" if th.get("underline") else ""))
+    font = t.get("font", "Arial")
     fonts = {r.font for p in paras for r in p.runs if r.text.strip() and r.font}
-    if fonts and fonts - {"Arial"}:
-        add("FAIL" if "Arial" not in fonts or len(fonts) > 1 and "Calibri" not in fonts else "WARN", a, f"fonts other than Arial found: {sorted(fonts)}")
+    if fonts and fonts != {font}:
+        add("FAIL", a, f"the {key} template uses {font} only; found {sorted(fonts)}")
     else:
-        add("PASS", a, "Arial throughout")
+        add("PASS", a, f"{font} throughout")
     if sect is not None:
         mar = sect.find(W + "pgMar")
         if mar is not None:
-            vals = [int(mar.get(W + k, 0)) for k in ("top", "bottom", "left", "right")]
-            if all(abs(v - 936) <= 5 for v in vals):
-                add("PASS", a, "margins 0.65 inch")
+            vals = [int(mar.get(W + k, 0)) / 1440 for k in ("top", "bottom", "left", "right")]
+            hi = t.get("margins_in", 0.65) + 0.1
+            if all(0.5 - 0.005 <= v <= hi + 0.005 for v in vals):
+                add("PASS", a, f"margins {vals[0]:.2f} inch (template range 0.50-{hi:.2f})")
             else:
-                add("FAIL", a, f"margins must be 0.65 inch (936 twips); found {vals}")
+                add("FAIL", a, f"margins must be 0.50-{hi:.2f} inch for the {key} template; found {[round(v, 2) for v in vals]}")
+    bs = body_size(emps, t)
+    lo = t.get("min_body_pt", 10)
+    if bs < lo:
+        add("FAIL", a, f"bullet text is {bs} pt; the {key} template's minimum is {lo} pt")
+    else:
+        add("PASS", a, f"bullet text {bs} pt (minimum {lo})")
+    table_ok = t.get("layout") == "hanging"
     for tag, label in (("<w:tbl>", "tables"), ("<w:drawing", "pictures or shapes"), ("<w:pict", "text boxes or shapes")):
         if tag in xml:
-            add("FAIL", a, f"{label} found; the resume must be a single-column text document")
+            if tag == "<w:tbl>" and table_ok:
+                add("INFO", a, f"the {key} template lays the page out in a table (ATS caution)")
+            else:
+                add("FAIL", a, f"{label} found; the {key} template is a single-column text document")
     if sect is not None:
         cols = sect.find(W + "cols")
         if cols is not None and int(cols.get(W + "num", "1")) > 1:
@@ -260,7 +347,7 @@ def check_summary_skills(paras, idx, emps, all_bullet_text):
             if r.bold and r.text.strip() and r.text.strip() not in (label + ":", label, ":"):
                 add("FAIL", "skills", f"items must not be bold: {r.text.strip()[:30]}")
                 break
-        for it in re.split(r",\s*", items):
+        for it in re.split(r",\s*|\s+[·•]\s+", items):
             it = it.strip()
             if not it:
                 continue
@@ -277,18 +364,20 @@ def check_summary_skills(paras, idx, emps, all_bullet_text):
         add("PASS", "skills", "every Technical Skills item appears in the bullets; labels bold")
 
 
-def check_employers(emps, exempt):
+def check_employers(emps, exempt, t):
     if not emps:
         add("FAIL", "experience", "no employer blocks found")
         return
+    bs = body_size(emps, t)
+    justify = t.get("justify", True)
     for k, e in enumerate(emps):
         rng = RANGES[min(k, 4)]
         uc = USE_CASE_WORDS[min(k, 4)]
-        nm = e["hdr"].text.split("|")[0].strip()
+        nm = e["hdr_text"].split("|")[0].strip()
         tag = f"E{k + 1} {nm}"
-        h = e["hdr"]
-        if not h.all_bold() or not all(r.size and 11.5 <= r.size <= 12 for r in h.runs if r.text.strip()):
-            add("FAIL", tag, "employer header must be bold, 11.5-12 pt")
+        first = next((r for r in e["hdr"].runs if r.text.strip()), None)  # the employer name
+        if first is None or not first.bold or not first.size or first.size < bs + 0.5:
+            add("FAIL", tag, f"employer name must be bold and at least 0.5 pt larger than the bullet text ({bs} pt)")
         for key, label in (("domain", "Domain:"), ("use", "Project Use Case:")):
             p = e[key]
             if p is None:
@@ -336,8 +425,10 @@ def check_employers(emps, exempt):
             add("FAIL", tag, "the first 3-4 bullets must be medium or long (a short bullet is in the top 4)")
         if any(b.any_bold() for b in bl):
             add("FAIL", tag, "bullets must contain no bold")
-        if any(b.jc != "both" for b in bl):
-            add("FAIL", tag, "every bullet must be justified")
+        if justify and any(b.jc != "both" for b in bl):
+            add("FAIL", tag, "every bullet must be justified (the template justifies bullets)")
+        if not justify and any(b.jc == "both" for b in bl):
+            add("FAIL", tag, "bullets must be left-aligned in this template")
         verbs = [t.split()[0].lower().strip(",.;:") for t in texts if t]
         rep = sorted({v for v in verbs if verbs.count(v) > 2})
         adj = sorted({verbs[i] for i in range(1, len(verbs)) if verbs[i] == verbs[i - 1]})
@@ -354,12 +445,9 @@ def check_employers(emps, exempt):
         if st is None:
             add("FAIL", tag, "missing Tech Stack line")
         else:
-            if not (st.all_bold() and st.all_italic()):
-                add("FAIL", tag, "Tech Stack line must be entirely bold and italic")
-            if e["after_bullets_blank"] != 1:
-                add("FAIL", tag, f"exactly one blank line is needed between the last bullet and Tech Stack; found {e['after_bullets_blank']}")
-            if e["after_stack_blank"] is not None and e["after_stack_blank"] != 1:
-                add("FAIL", tag, f"exactly one blank line is needed after Tech Stack; found {e['after_stack_blank']}")
+            lab = next((r for r in st.runs if r.text.strip()), None)
+            if not (lab is not None and lab.bold and st.all_italic()):
+                add("FAIL", tag, "Tech Stack line must be italic with a bold 'Tech Stack:' label")
             btxt = " ".join(texts)
             items = [x.strip() for x in st.text.split(":", 1)[1].split(",") if x.strip()]
             miss = [x for x in items if not (mentions(btxt, x) or norm(x) in norm(btxt))]
@@ -410,7 +498,9 @@ def check_profile(path, paras, emps):
         add("FAIL", "profile", f"name differs from the profile ({field('Name')})")
     else:
         add("PASS", "profile", "name matches")
-    if len(paras) > 1 and paras[1].text.strip() != contact:
+    parts = lambda s: [x for x in re.split(r"\s*[|•·]\s*", s.strip()) if x]  # templates may use • or · between items
+    ci = find_contact(paras)
+    if len(paras) > ci and parts(paras[ci].text) != parts(contact):
         add("FAIL", "profile", f"contact line differs; expected: {contact}")
     else:
         add("PASS", "profile", "contact line matches")
@@ -418,7 +508,7 @@ def check_profile(path, paras, emps):
     titles = re.findall(r"^\s*Job title:\s*(.+)$", txt, re.M)
     dates = re.findall(r"^\s*Dates:\s*(.+)$", txt, re.M)
     want = [f"{a.strip()} | {b.strip()} | {c.strip()}" for a, b, c in zip(names, titles, dates)]
-    got = [e["hdr"].text.strip() for e in emps]
+    got = [e["hdr_text"] for e in emps]
     if got != want:
         add("FAIL", "profile", f"employer headers differ from the profile.\n      expected: {want}\n      found:    {got}")
     else:
@@ -479,21 +569,23 @@ def main(argv):
     ap.add_argument("--exempt", default="")
     ap.add_argument("--required", default="")
     ap.add_argument("--preferred", default="")
+    ap.add_argument("--template", default="", help="check the layout against this template instead of the one the file names")
     a = ap.parse_args(argv)
     csv = lambda s: [x.strip() for x in s.split(",") if x.strip()]
-    paras, xml, sect, _ = load(a.resume)
+    paras, xml, sect, stamp = load(a.resume)
+    key, tpl = load_template(a.template.strip().lower() or stamp)
     idx = split_sections(paras)
-    check_layout(paras, xml, sect, idx)
     emps = parse_employers(paras, idx.get("PROFESSIONAL EXPERIENCE", len(paras)) + 1)
+    check_layout(paras, xml, sect, idx, key, tpl, emps)
     allb = " ".join(b.text for e in emps for b in e["bullets"])
     check_summary_skills(paras, idx, emps, allb)
-    check_employers(emps, {x.lower() for x in csv(a.exempt)})
+    check_employers(emps, {x.lower() for x in csv(a.exempt)}, tpl)
     check_text_rules(emps)
     total = sum(words(p.text) for p in paras)
-    if 1750 <= total <= 2050:
-        add("PASS", "length", f"{total} words (target 1,750-2,050)")
+    if WORDS_MIN <= total <= WORDS_MAX:
+        add("PASS", "length", f"{total} words (target {WORDS_MIN:,}-{WORDS_MAX:,})")
     else:
-        add("FAIL", "length", f"{total} words; target is 1,750-2,050 (about {total / 510:.1f} pages at roughly 510 words per page)")
+        add("FAIL", "length", f"{total} words; target is {WORDS_MIN:,}-{WORDS_MAX:,} (three pages)")
     if a.profile:
         check_profile(a.profile, paras, emps)
     if a.tools:
