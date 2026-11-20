@@ -469,11 +469,13 @@ def cmd_reuse(a):
     # resume_render.py keeps the resume's content beside it as <name>.json; copy it too, so the
     # copy can be re-rendered in the candidate's current template.
     src_json, dest_json = os.path.splitext(src)[0] + ".json", os.path.splitext(dest)[0] + ".json"
-    if os.path.isfile(src_json) and not os.path.exists(dest_json):
+    if not os.path.isfile(src_json):
+        out("CONTENT: none (resume built before templates; it keeps its original layout)")
+    elif os.path.exists(dest_json):
+        out(f"CONTENT: {dest_json} (a content file with this name was already in the job folder; it was kept, not overwritten)")
+    else:
         shutil.copy2(src_json, dest_json)
         out(f"CONTENT: {dest_json}")
-    else:
-        out("CONTENT: none (resume built before templates; it keeps its original layout)")
     return 0
 
 

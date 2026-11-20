@@ -435,44 +435,27 @@ def scaled(t, s):
         for k in GAP_KEYS:
             if k in d:
                 d[k] = half(d[k] * s)
+    # Employer names must stay visibly larger than the bullet text at every level (resume_check.py requires
+    # at least 0.5 pt), even where the body size hits the template's minimum.
+    emp = t.get("employer", {})
+    if "pt" in emp:
+        emp["pt"] = max(emp["pt"], t["body_pt"] + 0.5)
     return t
 
 
 def count_pages(paths):
     """[(pages, last_page_fill 0-1 or None)] for each DOCX, laid out by Word or LibreOffice.
 
-    Uses Word through pywin32 or PowerShell on Windows, or LibreOffice (soffice) anywhere.
-    Returns None when no layout engine is available (fit is then skipped)."""
+    Uses Word through PowerShell on Windows (in its own process, with a time limit), or LibreOffice (soffice)
+    elsewhere. Returns None when no layout engine is available or it fails in any way; fit is then skipped and
+    the resume is still saved."""
     paths = [str(Path(p).resolve()) for p in paths]
-    if sys.platform == "win32":
-        try:
-            import win32com.client  # noqa: F401
-            return _count_word_pywin32(paths)
-        except ImportError:
-            return _count_word_powershell(paths)
-    return _count_soffice(paths)
-
-
-def _count_word_pywin32(paths):
-    import win32com.client
-    word = win32com.client.DispatchEx("Word.Application")
-    word.Visible = False
-    word.DisplayAlerts = 0
-    out = []
     try:
-        for p in paths:
-            doc = word.Documents.Open(p, False, True, False)
-            pages = doc.ComputeStatistics(2)
-            end = doc.Content
-            end.Collapse(0)
-            sec = doc.Sections(1).PageSetup
-            usable = sec.PageHeight - sec.TopMargin - sec.BottomMargin
-            fill = (end.Information(6) - sec.TopMargin) / usable
-            out.append((pages, max(0.0, min(1.0, fill))))
-            doc.Close(False)
-    finally:
-        word.Quit()
-    return out
+        if sys.platform == "win32":
+            return _count_word_powershell(paths)
+        return _count_soffice(paths)
+    except Exception:  # a layout engine problem must never stop the resume from being saved
+        return None
 
 
 def _count_word_powershell(paths):
@@ -490,7 +473,7 @@ try { foreach ($p in $args) {
         f.write(ps)
     try:
         res = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", f.name,
-                              *paths], capture_output=True, text=True, timeout=600)
+                              *paths], capture_output=True, text=True, timeout=240)
     except (OSError, subprocess.TimeoutExpired):
         return None
     finally:
@@ -515,7 +498,7 @@ def _count_soffice(paths):
     with tempfile.TemporaryDirectory() as tmp:
         try:
             subprocess.run([exe, "--headless", "--convert-to", "pdf", "--outdir", tmp, *paths],
-                           capture_output=True, timeout=600)
+                           capture_output=True, timeout=240)
         except (OSError, subprocess.TimeoutExpired):
             return None
         for p in paths:

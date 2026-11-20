@@ -340,9 +340,9 @@ Bold is allowed in only the places listed here, always as actual DOCX bold forma
 1.	Professional Summary: bold important technologies (programming languages, frameworks, databases, cloud platforms and services, DevOps, infrastructure, container, monitoring, security, API, data and BI tools). Bold each technology at most once in the paragraph so it remains visually balanced.
 2.	Technical Skills: bold the category labels only (the keys, for example "Languages:" or "Cloud:"). The items listed after each label are plain text.
 3.	Tech Stack line of every employer: the "Tech Stack:" label is bold and the whole line is italic; the template decides whether the items are bold too.
-4.	Employer header line of every employer: the whole line (employer name, job title and dates) is bold.
+4.	Employer header of every employer: the employer name is bold; the template decides how the job title and dates are styled.
 5.	The labels "Domain:" and "Project Use Case:" are bold; the text after each label is plain.
-Professional Experience bullets contain no bold at all, including technology names. Do not bold anything else in the resume body (action verbs, business terminology, responsibilities, ordinary nouns, metrics, or domain terminology). Section headings, the candidate name and the employer header line follow their own formatting rules in USER-REQUESTED OUTPUT OVERRIDES.
+Professional Experience bullets contain no bold at all, including technology names. Do not bold anything else in the resume body (action verbs, business terminology, responsibilities, ordinary nouns, metrics, or domain terminology). Section headings, the candidate name, the headline and the employer headers are formatted by the template (see USER-REQUESTED OUTPUT OVERRIDES, item 3); you only mark summary technologies with **double asterisks** in the content file.
 
 PROFESSIONAL SUMMARY
 Create one continuous paragraph approximately 6-8 resume lines in length.
@@ -534,7 +534,7 @@ Before returning the resume, silently verify:
 16.	Technology stacks and responsibilities remain meaningfully differentiated across clients; repeated tools appear only when their use case is genuinely different and historically appropriate.
 17.	Recent roles demonstrate stronger alignment with modern JD technologies.
 18.	Earlier roles show believable career progression.
-19.	Bold appears only in the Professional Summary (each technology at most once), the Technical Skills category labels, the employer header lines, the "Domain:" and "Project Use Case:" labels, and the Tech Stack lines as the template styles them; no Professional Experience bullet and no headline contains bold.
+19.	Bold appears only in the Professional Summary (each technology at most once), the Technical Skills category labels, the employer headers as the template styles them, the "Domain:" and "Project Use Case:" labels, and the Tech Stack lines as the template styles them; no Professional Experience bullet and no headline contains bold.
 20.	No action verbs, business words, metrics or domain terms are bolded anywhere.
 20a.	Approximately 60% of each employer's bullets carry a result (about 70% of those naming what improved and for whom or what), and no figure comes from anywhere except the Job Description or Vendor Call Notes.
 21.	Technical Skills contain only technologies represented in Professional Experience.
