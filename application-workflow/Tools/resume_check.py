@@ -72,7 +72,7 @@ class Run:
                 parts.append("\t")
             elif ch.tag in (W + "br", W + "cr") and ch.get(W + "type") != "page":
                 parts.append(" ")
-        self.text = "".join(parts)
+        self.text = "".join(parts).replace("\u2013", "-")  # date ranges are typeset with an en dash
         self.bold = flag(rpr, "b")
         self.italic = flag(rpr, "i")
         u = rpr.find(W + "u") if rpr is not None else None
@@ -291,7 +291,7 @@ def check_layout(paras, xml, sect, idx, key, t, emps):
         add("FAIL", a, f"bullet text is {bs} pt; the {key} template's minimum is {lo} pt")
     else:
         add("PASS", a, f"bullet text {bs} pt (minimum {lo})")
-    table_ok = t.get("layout") == "hanging"
+    table_ok = not t.get("ats_safe", True)  # templates marked ATS caution use a table by design
     for tag, label in (("<w:tbl>", "tables"), ("<w:drawing", "pictures or shapes"), ("<w:pict", "text boxes or shapes")):
         if tag in xml:
             if tag == "<w:tbl>" and table_ok:

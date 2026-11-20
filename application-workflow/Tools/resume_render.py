@@ -26,14 +26,18 @@ Content JSON:
   }
 
 Template keys (see resume_templates.json for examples):
-  layout          single | hanging (section titles in a narrow left column)
-  header.style    simple | band (name block on a shaded full-width band)
-  heading.style   text (underline and/or rule) | bar (shaded bar with a left accent)
+  layout          single | hanging (section titles in the left margin, as Word frames)
+  header.style    simple | band (name block on a shaded full-width band) | rail (accent bar beside the name)
+  headline.sep    replaces the " · " separators of the headline (for fonts whose middle dot sits unevenly)
+  heading.style   text (underline and/or rule) | bar (left accent bar, on a shaded strip when "fill" is set)
+  summary_box     the summary on a shaded panel with an accent edge
+  skills_style    lines | grid (two shaded columns; a table, so the template is marked ATS caution)
   employer.style  inline (Company | Title | Dates on one line)
-                  | split (company left, dates right, job title on the line below)
+                  | split (company left, dates right, job title on the line below; "fill" shades it)
   justify         false left-aligns body text (used in narrow columns)
-  stack           how the Tech Stack line looks: bold, italic, color
+  stack           how the Tech Stack line looks: bold, italic, color, fill
   gap_stack_pt, gap_employer_pt   space before each Tech Stack / between employers
+  min_body_pt, max_body_pt        the body sizes auto-fit may use
   footer          name and "Page X of Y" from page 2 on
 """
 import argparse
@@ -78,6 +82,11 @@ def load_templates():
     return {k: v for k, v in data.items() if not k.startswith("_")}
 
 
+def en_dash(dates):
+    """Date ranges are typeset with an en dash: 'Feb 2023 – Present'."""
+    return re.sub(r"\s+-\s+", " \u2013 ", dates)
+
+
 def split_header(h):
     parts = [x.strip() for x in h.split(" | ")]
     while len(parts) < 3:
@@ -119,6 +128,7 @@ class Renderer:
         self.target = self.doc
         self.width = PAGE_WIDTH_IN - 2 * self.margin  # text width of the current target
         self._fresh = None  # the empty first paragraph of a new table cell, reused once
+        self.indent = 0.0  # extra left indent for body paragraphs (the hanging layout's text column)
 
     # ---------- low-level helpers ----------
     def color(self, key):
@@ -148,6 +158,12 @@ class Renderer:
         pf.line_spacing = self.t.get("line_spacing", 1.0)
         if align is not None:
             p.alignment = ALIGN[align] if isinstance(align, str) else align
+        if self.indent:
+            if style == "List Bullet":  # keep the bullet's own hanging indent, shifted into the text column
+                pf.left_indent = Inches(self.indent + 0.25)
+                pf.first_line_indent = Inches(-0.25)
+            else:
+                pf.left_indent = Inches(self.indent)
         return p
 
     def run(self, p, text, bold=False, italic=False, underline=False, pt=None,
@@ -216,6 +232,14 @@ class Renderer:
         b.append(e)
         tcPr.insert(1 if tcPr.find(qn("w:tcW")) is not None else 0, b)
 
+    def cell_fill(self, cell, fill):
+        tcPr = cell._tc.get_or_add_tcPr()
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:val"), "clear")
+        shd.set(qn("w:color"), "auto")
+        shd.set(qn("w:fill"), self.color(fill))
+        tcPr.append(shd)
+
     def table(self, widths, rows=1):
         """A borderless fixed-width table in the document body."""
         tbl = self.doc.add_table(rows=rows, cols=len(widths))
@@ -223,7 +247,7 @@ class Renderer:
         tbl.autofit = False
         layout = OxmlElement("w:tblLayout")
         layout.set(qn("w:type"), "fixed")
-        tbl._tbl.tblPr.append(layout)
+        tbl._tbl.tblPr.insert_element_before(layout, "w:tblCellMar", "w:tblLook", "w:tblCaption", "w:tblDescription")
         for row in tbl.rows:
             for cell, w in zip(row.cells, widths):
                 cell.width = Inches(w)
@@ -256,28 +280,37 @@ class Renderer:
         n, ct = t["name"], t["contact"]
         hs = t.get("header", {})
         band = hs.get("style") == "band"
+        rail = hs.get("style") == "rail"  # a thick accent bar down the left of the name block
         contact = c["contact"]
         if t.get("contact_sep"):
             contact = contact.replace(" | ", t["contact_sep"])
 
+        def mark(p, bar=False):
+            if band:
+                self.shade(p, hs["fill"])
+            if rail:  # every header line lines up with the name; only the name carries the bar, as one
+                # unbroken block (bars on several paragraphs render as separate, misaligned pieces)
+                p.paragraph_format.left_indent = Inches(hs.get("indent_in", 0.14))
+                if bar:
+                    self.rule(p, hs["rail"], sides=("left",), size=hs.get("rail_size", 36), space=8)
+
         p = self.para(n["align"], 0, n.get("after", 0))
         self.run(p, c["name"], bold=n.get("bold", True), pt=n["pt"],
                  color="FFFFFF" if band else n.get("color"), spacing=n.get("spacing"))
-        if band:
-            self.shade(p, hs["fill"])
+        mark(p, bar=True)
 
         hl = t.get("headline")
         if hl and c.get("headline"):
             p = self.para(n["align"], hl.get("before", 0), hl.get("after", 1))
-            self.run(p, c["headline"], bold=hl.get("bold", False), pt=hl["pt"],
+            text = c["headline"].replace(" · ", hl["sep"]) if hl.get("sep") else c["headline"]
+            self.run(p, text, bold=hl.get("bold", False), pt=hl["pt"],
                      color=hl.get("color"), spacing=hl.get("spacing"))
-            if band:
-                self.shade(p, hs["fill"])
+            mark(p)
 
         p = self.para(ct["align"], 0, ct.get("after", 0))
         self.run(p, contact, pt=ct["pt"], color=ct.get("color"))
+        mark(p)
         if band:
-            self.shade(p, hs["fill"])
             p.paragraph_format.line_spacing = 1.2
         if hs.get("rule"):
             self.rule(p, hs["rule"], size=12, space=4)
@@ -290,16 +323,29 @@ class Renderer:
             p.paragraph_format.left_indent = Inches(0.05)
         self.run(p, text, bold=h.get("bold", True), underline=h.get("underline", False),
                  pt=h["pt"], color=h.get("color"), spacing=h.get("spacing"))
-        if h.get("style") == "bar":
-            self.shade(p, h["fill"])
+        if h.get("style") == "bar":  # a left accent bar, on a shaded strip when the template gives a fill
+            if h.get("fill"):
+                self.shade(p, h["fill"])
+            else:
+                p.paragraph_format.left_indent = Inches(0.1)
             if h.get("rule"):
-                self.rule(p, h["rule"], sides=("left",), size=24)
+                self.rule(p, h["rule"], sides=("left",), size=h.get("rule_size", 24), space=h.get("rule_space", 2))
+            if h.get("underrule"):
+                self.rule(p, h["underrule"], sides=("left", "bottom"), size=h.get("rule_size", 24))
         elif h.get("rule"):
             self.rule(p, h["rule"], sides=("top", "bottom") if h.get("rule_above") else ("bottom",))
         return p
 
     def summary(self, c):
-        p = self.para(self.body_align)
+        box = self.t.get("summary_box")  # the summary on a shaded panel with an accent edge
+        p = self.para(self.body_align, 0, 0)
+        if box:
+            pf = p.paragraph_format
+            pf.left_indent = pf.right_indent = Inches(box.get("indent_in", 0.1))
+            pf.space_before = Pt(box.get("before", 2))
+            self.shade(p, box["fill"])
+            self.rule(p, box.get("rule", "accent"), sides=("left",), size=box.get("rule_size", 24), space=6)
+            pf.line_spacing = box.get("line_spacing", 1.05)
         for i, part in enumerate(re.split(r"\*\*", c["summary"])):
             if part:
                 self.run(p, part, bold=(i % 2 == 1))
@@ -307,8 +353,44 @@ class Renderer:
     def skills(self, c):
         t = self.t
         sep = t.get("skill_sep")
+        items_of = (lambda s: s.replace(", ", sep)) if sep else (lambda s: s)
+        if t.get("skills_style") == "grid" and self.target is self.doc and len(c["skills"]) > 1:
+            # Two columns of "Label: items" lines, split where the text is balanced; order is kept
+            # (left column top to bottom, then right), so each line still reads on its own.
+            rows = c["skills"]
+            pad = t.get("grid_pad_in", 0.1)
+            col_w = self.width / 2
+            text_w = col_w - 2 * pad
+            # Balance the columns by estimated printed lines, not characters: a long category wraps.
+            per_line = max(20, int(text_w * 72 / (self.body * 0.5)))
+            lines = [-(-(len(a) + 2 + len(items_of(b))) // per_line) for a, b in rows]
+            cut = min(range(1, len(rows)), key=lambda k: (max(sum(lines[:k]), sum(lines[k:])), -k))
+            tbl = self.table([col_w, col_w])
+            # Zero cell margins so the shaded box lines up exactly with the page margins; the text
+            # gets its breathing room from paragraph indents instead.
+            mar = OxmlElement("w:tblCellMar")
+            for side in ("top", "left", "bottom", "right"):
+                e = OxmlElement(f"w:{side}")
+                e.set(qn("w:w"), "0")
+                e.set(qn("w:type"), "dxa")
+                mar.append(e)
+            tbl._tbl.tblPr.insert_element_before(mar, "w:tblLook", "w:tblCaption", "w:tblDescription")
+            for col, part in ((0, rows[:cut]), (1, rows[cut:])):
+                cell = tbl.cell(0, col)
+                if t.get("grid_fill"):
+                    self.cell_fill(cell, t["grid_fill"])
+                prev = self.into(cell, text_w)
+                made = [self.labelled(label + ": ", items_of(items), after=t.get("skill_after", 1),
+                                      label_color=t.get("skill_label_color")) for label, items in part]
+                self.back(prev)
+                for p in made:
+                    p.paragraph_format.left_indent = p.paragraph_format.right_indent = Inches(pad)
+                    p.paragraph_format.first_line_indent = Inches(0)
+                made[0].paragraph_format.space_before = Pt(5)
+                made[-1].paragraph_format.space_after = Pt(5)
+            return
         for label, items in c["skills"]:
-            self.labelled(label + ": ", items.replace(", ", sep) if sep else items,
+            self.labelled(label + ": ", items_of(items),
                           after=t.get("skill_after", 0), label_color=t.get("skill_label_color"))
 
     def employer_head(self, e, before):
@@ -316,16 +398,23 @@ class Renderer:
         company, title, dates = split_header(e["header"])
         if et.get("style") == "split":
             p = keep_next(self.para(before=before))
+            if et.get("fill"):  # the company line on a shaded strip
+                p.paragraph_format.left_indent = p.paragraph_format.right_indent = Inches(0.05)
+                self.shade(p, et["fill"])
             self.right_tab(p)
+            if et.get("fill"):
+                p.paragraph_format.tab_stops.clear_all()
+                p.paragraph_format.tab_stops.add_tab_stop(Inches(self.width - 0.1), WD_TAB_ALIGNMENT.RIGHT)
             self.run(p, company, bold=True, pt=et["pt"], color=et.get("color"))
-            self.run(p, "\t" + dates, bold=et.get("dates_bold", True),
+            self.run(p, "\t" + en_dash(dates), bold=et.get("dates_bold", True),
                      pt=et.get("dates_pt", self.body), color=et.get("dates_color"))
             p = keep_next(self.para(after=et.get("after", 1)))
             self.run(p, title, bold=et.get("title_bold", False), italic=et.get("title_italic", True),
                      pt=et.get("title_pt", self.body), color=et.get("title_color"))
         else:
             p = keep_next(self.para(before=before, after=et.get("after", 0)))
-            self.run(p, e["header"], bold=True, pt=et["pt"], color=et.get("color"))
+            company, title, dates = split_header(e["header"])
+            self.run(p, f"{company} | {title} | {en_dash(dates)}", bold=True, pt=et["pt"], color=et.get("color"))
 
     def employer(self, e, first):
         t = self.t
@@ -337,8 +426,9 @@ class Renderer:
         last = len(e["bullets"]) - 1
         for i, b in enumerate(e["bullets"]):
             p = self.para(self.body_align, 0, t["bullet"]["after"], style="List Bullet")
+            p.paragraph_format.keep_together = True  # never split a bullet across pages
             self.run(p, b)
-            if i == 0 or i == last:  # first bullet stays with the use case; last with the Tech Stack
+            if i == last:  # the last bullet stays with the Tech Stack (the use case already keeps the first)
                 keep_next(p, together=True)
         s = t.get("stack", {})
         p = self.para(before=t.get("gap_stack_pt", 6))
@@ -364,6 +454,12 @@ class Renderer:
         cp.author = c["name"]
         cp.title = c["name"] + " - Resume"
         cp.comments = ""
+        # python-docx's starting file is dated 2013; stamp the real time so File > Info looks right
+        import datetime
+        now = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0, tzinfo=None)
+        cp.created = cp.modified = now
+        cp.last_modified_by = c["name"]
+        cp.revision = 1
         self.footer(c)
         getattr(self, "layout_" + self.t.get("layout", "single"))(c)
         return self.doc
@@ -378,32 +474,37 @@ class Renderer:
         self.experience(c)
 
     def layout_hanging(self, c):
-        """Section titles sit in a narrow left column beside their content."""
+        """Section titles sit in the left margin column beside their content.
+
+        Each title is a Word frame anchored to its section's first line, and the content is ordinary
+        indented paragraphs. Unlike a table, this keeps Word's page-break rules (no lone lines, no
+        split bullets), never repeats borders at the top of a page, and reads in plain document order."""
         t = self.t
-        self.header(c)
-        hw = t.get("hang_col_in", 1.3)
-        full = self.width
-        tbl = self.table([hw, full - hw], rows=3)
-        parts = ((HEADINGS[0], self.summary), (HEADINGS[1], self.skills), (HEADINGS[2], self.experience))
         h = t["heading"]
-        for i, (row, (title, fill)) in enumerate(zip(tbl.rows, parts)):
+        self.header(c)
+        hw = t.get("hang_col_in", 1.35)
+        parts = ((HEADINGS[0], self.summary), (HEADINGS[1], self.skills), (HEADINGS[2], self.experience))
+        for i, (title, fill) in enumerate(parts):
             top = h.get("first_before", 4) if i == 0 else h.get("before", 8)
-            prev = self.into(row.cells[0], hw)
-            p = self.para(before=top)  # one paragraph, two lines: ATS and the checker read one title
+            p = keep_next(self.para())  # one paragraph, two lines: ATS and the checker read one title
+            fr = OxmlElement("w:framePr")
+            for k, v in (("w", str(int((hw - 0.12) * 1440))), ("hSpace", "0"), ("wrap", "none"),
+                         ("vAnchor", "text"), ("hAnchor", "margin"), ("x", "0"),
+                         ("y", str(int((top + 1) * 20)))):
+                fr.set(qn("w:" + k), v)
+            insert_ordered(p._p.get_or_add_pPr(), fr, "framePr", PPR_ORDER)
             first, _, second = title.partition(" ")
             self.run(p, first, bold=True, pt=h["pt"], color=h.get("color"), spacing=h.get("spacing"))
             r = self.run(p, "", bold=True, pt=h["pt"], color=h.get("color"))
             r.add_break()
             self.run(p, second, bold=True, pt=h["pt"], color=h.get("color"), spacing=h.get("spacing"))
-            self.back(prev)
+            self.indent = hw
+            opener = keep_next(self.para(before=top))
+            opener.paragraph_format.line_spacing = Pt(1)
             if i and t.get("hang_rule"):
-                for cell in row.cells:
-                    self.cell_border(cell, "top", t["hang_rule"])
-            prev = self.into(row.cells[1], full - hw - 0.15)
-            self.para(before=top).paragraph_format.line_spacing = Pt(1)
+                self.rule(opener, t["hang_rule"], sides=("top",), size=6, space=1)
             fill(c)
-            self.para(after=2).paragraph_format.line_spacing = Pt(2)
-            self.back(prev)
+            self.indent = 0.0
 
 
 # ---------- auto-fit to a page count ----------
@@ -421,7 +522,7 @@ def scaled(t, s):
     t = json.loads(json.dumps(t))
     half = lambda v: round(v * 2) / 2  # Word sizes go in half points
     lo = t.get("min_body_pt", 10)
-    hi = t["body_pt"] + 1
+    hi = min(t["body_pt"] + 1, t.get("max_body_pt", 11))  # text never grows past a professional size
     t["body_pt"] = min(hi, max(lo, half(t["body_pt"] * s)))
     t["margins_in"] = round(min(t["margins_in"] + 0.1, max(0.5, t["margins_in"] * s)), 2)
     for k in GAP_KEYS:

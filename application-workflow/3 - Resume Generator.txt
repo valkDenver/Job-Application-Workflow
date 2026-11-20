@@ -110,7 +110,7 @@ The personal details and each employer/client name, job title, employment dates,
 For each employer, responsibilities, technologies, tools, architecture, and project details must be dynamically tailored to the Target Job Description while remaining believable for that employer's domain, using the domain guidance and seniority notes in the profile, including any restriction such as not inflating a role into Lead, Principal, Staff, or Architect-level ownership.
 Throughout this prompt, "Employer 1" means the most recent employer, "Employer 2" the one before it, and so on. The earliest employer is the candidate's earliest experience and must remain an earlier-career position.
 If the profile lists fewer than five employers, apply the rules to the employers that exist.
-RESUME TEMPLATE: the "Resume template:" line of the profile's RESUME LAYOUT section names the layout (classic, modern, compact, executive, two_line, banner or hanging). If it is blank or missing, use classic. If it names something else, use classic and tell me after delivery. The template changes only the look of the DOCX, never its content.
+RESUME TEMPLATE: the "Resume template:" line of the profile's RESUME LAYOUT section names the layout (classic, modern, compact, executive, two_line, banner, hanging, rail, grid or spotlight). If it is blank or missing, use classic. If it names something else, use classic and tell me after delivery. The template changes only the look of the DOCX, never its content.
 Ignore the VENDOR CALL FACTS section of the profile and every section after it (employer of record, references). It is for the vendor-call step and must not appear on the resume.
 
 CORE GENERATION PRINCIPLE
@@ -590,7 +590,7 @@ The look of the DOCX (font, sizes, margins, spacing, colours, heading style, ali
 • Always render with the renderer and the candidate's template (see RENDER AND AUTOMATED CHECK). Never build the DOCX with your own code, and never change fonts, sizes, margins or spacing by hand.
 • Bold comes only from the content file's **double asterisks** in the summary; the renderer bolds the labels, headings and employer names itself. Never put asterisks or other markdown anywhere else.
 • Do not insert soft hyphens, zero-width spaces, manual line breaks or page breaks into any text value.
-• All templates except hanging are single-column text documents with no tables, text boxes or pictures. The hanging template uses a two-column table for its layout; it is chosen by the candidate, so keep it and do not report it as a problem.
+• All templates are text documents with no text boxes or pictures. Two templates marked ATS caution are laid out differently by design: hanging places its section titles in the left margin with Word frames, and grid puts the Technical Skills in a two-column table. The candidate chose them, so keep them and do not report them as problems.
 4. The Automated Check verifies the template's layout (font, alignment, heading style, margins and body size within the template's limits, no stray tables, bullet alignment). Verify by reading the FINAL VALIDATION items it cannot cover.
 
 RESUME FILE LOCATION AND NAME (APPLIES TO EVERY NEWLY GENERATED RESUME)
