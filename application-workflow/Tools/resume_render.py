@@ -541,6 +541,43 @@ def render_fit(t, content, out, pages, key="custom"):
             f"margins {ts['margins_in']} in{note}")
 
 
+def to_pdf(docs, outdir):
+    """Convert DOCX files to PDFs with the same names in outdir, through Word (Windows) or LibreOffice.
+    Returns the PDF paths, or None when no converter is available or it fails."""
+    import shutil
+    import subprocess
+    import tempfile
+    docs = [str(Path(d).resolve()) for d in docs]
+    pdfs = [str(Path(outdir).resolve() / (Path(d).stem + ".pdf")) for d in docs]
+    try:
+        if sys.platform == "win32":
+            ps = r"""
+$w = New-Object -ComObject Word.Application; $w.Visible = $false; $w.DisplayAlerts = 0
+try { for ($i = 0; $i -lt $args.Count; $i += 2) {
+  $d = $w.Documents.Open($args[$i], $false, $true, $false); $d.Fields.Update() | Out-Null
+  $d.SaveAs2($args[$i + 1], 17); $d.Close($false) } } finally { $w.Quit() }
+"""
+            with tempfile.NamedTemporaryFile("w", suffix=".ps1", delete=False, encoding="utf-8") as f:
+                f.write(ps)
+            pairs = [x for d, p in zip(docs, pdfs) for x in (d, p)]
+            try:
+                subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", f.name, *pairs],
+                               capture_output=True, timeout=240)
+            finally:
+                Path(f.name).unlink(missing_ok=True)
+        else:
+            exe = shutil.which("soffice") or shutil.which("libreoffice")
+            mac = "/Applications/LibreOffice.app/Contents/MacOS/soffice"
+            exe = exe or (mac if Path(mac).exists() else None)
+            if not exe:
+                return None
+            subprocess.run([exe, "--headless", "--convert-to", "pdf", "--outdir", str(Path(outdir).resolve()), *docs],
+                           capture_output=True, timeout=240)
+    except Exception:
+        return None
+    return pdfs if all(Path(p).exists() for p in pdfs) else None
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -551,6 +588,8 @@ def main(argv=None):
     r.add_argument("--template", default="classic")
     r.add_argument("--pages", type=int, default=3,
                    help="fit the resume onto this many pages (default 3; 0 = no fitting)")
+    r.add_argument("--pdf", action="store_true",
+                   help="also save a PDF copy beside the DOCX (only when the candidate asks for one)")
     a = ap.parse_args(argv)
 
     templates = load_templates()
@@ -592,6 +631,9 @@ def main(argv=None):
         side.write_text(json.dumps(content, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"saved {out} (template: {key}); {note}")
     print(f"CONTENT: {side}")
+    if a.pdf:
+        pdf = to_pdf([out], out.parent)
+        print(f"PDF: {pdf[0]}" if pdf else "PDF: not made (needs Microsoft Word on Windows, or LibreOffice); the DOCX is saved")
     return 0
 
 

@@ -55,7 +55,7 @@ Show the candidate, in one message: the number of jobs, and per job its Job ID, 
 
 ### Launch text
 
-Replace the parts in angle brackets. Leave out the Run setting line when there is none.
+Replace the parts in angle brackets. Leave out the Run setting line when there is none, and the PDF copies line unless the candidate asked for PDFs (resumes are always Word files; a PDF is only an extra copy).
 
 ```
 Run Module 03 for one job: <Job ID>. Folder: technology "<technology>", <specialty "<specialty>" | no specialty> (if it clearly does not fit the job's required skills, use a better one and say so).
@@ -67,6 +67,7 @@ Files:
 - Run every "python Tools/..." command from <full path of the application-workflow folder> (<Windows | Mac: use python3>). Render the Word file with Tools/resume_render.py, run by <the DOCX Python found before step 1> (it has python-docx), in the template named in the Candidate Profile.
 - Work folder: <run folder>/<Job ID>/
 Run setting: <the candidate's run setting, word for word>
+PDF copies: <"yes, add --pdf to the render command" only when the candidate asked for PDFs; otherwise leave this line out>
 
 Run Module 03 in full for this job: Industry-Fit Gate, employer tool evidence check, library check, generation (content file, then resume_render.py to the path resume_path.py path prints), its final validation, and resume_check.py until 0 FAIL, then every WARN fixed or, if it is a false alarm, kept and named in your notes (as Module 03 says).
 Batch rules (they override Module 03 where they differ): do not write the tracker (skip TRACKER UPDATE and the tracker step in gate rule 2); skip the SAME RECRUITER OR AGENCY CHECK; you cannot ask anything, so take the default that lets the job continue and note it; skip the RESUME PATH line.
