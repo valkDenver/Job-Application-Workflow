@@ -51,6 +51,9 @@ Domain:
 Domain guidance:
 Seniority notes: [For the earliest role, say it must remain an earlier-career position.]
 
+RESUME LAYOUT
+Resume template: [One of: classic, modern, compact, executive, two_line, banner, hanging, rail, grid, spotlight. Leave blank for classic. To see what each looks like, open the "Resume Templates" folder (start with "00 - All templates at a glance.pdf"). All are ATS-safe except hanging and grid, which suit resumes sent straight to a person.]
+
 OPTIONAL (only if you want them on the resume; Prompt 3 never invents these)
 Education: [Only if you want it on the resume. The spoken version is under Education in the Vendor Call Facts below]
 Certifications:

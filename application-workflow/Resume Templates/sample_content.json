@@ -1,0 +1,133 @@
+{
+ "name": "JORDAN ELLIS",
+ "headline": "Senior Data Engineer | Python · Apache Spark · AWS · Snowflake",
+ "contact": "Austin, TX | (555) 010-0142 | jordan.ellis@example.com | linkedin.com/in/jordan-ellis-sample",
+ "summary": "Senior Data Engineer with about 12 years of experience building batch and streaming data platforms for media, telecom, logistics, banking and healthcare teams. Designs pipelines in **Python** and **Apache Spark** on **AWS**, streams events through **Kafka**, and models analytics-ready data in **Snowflake** with **dbt**. Runs production workflows in **Apache Airflow** with data-quality gates, automates infrastructure with **Terraform**, and ships changes through CI/CD with tests on every merge. Earlier work on **Teradata**, **Informatica PowerCenter** and **Oracle** grounds strong SQL and dimensional modeling skills. Known for clear runbooks, steady production support and close work with the analysts who depend on the data each morning.",
+ "skills": [
+  [
+   "Languages",
+   "Python, SQL, Bash"
+  ],
+  [
+   "Data Processing",
+   "Apache Spark, PySpark, Kafka, AWS Glue, Informatica PowerCenter"
+  ],
+  [
+   "Orchestration",
+   "Apache Airflow, Control-M"
+  ],
+  [
+   "Cloud",
+   "AWS, S3, EMR, Azure, Azure Blob Storage"
+  ],
+  [
+   "Data Warehousing",
+   "Snowflake, Redshift, Teradata, Oracle, SQL Server, dbt, dimensional modeling"
+  ],
+  [
+   "DevOps/CI/CD",
+   "Terraform, GitHub Actions, Jenkins, Docker, Git, CI/CD"
+  ],
+  [
+   "Data Quality/Monitoring",
+   "Great Expectations, Datadog"
+  ],
+  [
+   "Reporting/BI",
+   "Tableau, Power BI, SSRS, Excel"
+  ],
+  [
+   "Practices",
+   "data governance, runbooks"
+  ]
+ ],
+ "employers": [
+  {
+   "header": "Contoso Media | Senior Data Engineer | Feb 2023 - Present",
+   "domain": "Media & Entertainment / Streaming Analytics",
+   "usecase": "A streaming analytics platform on AWS turns playback, ad and subscription events into reporting for content, marketing and finance teams. The data team works in two-week sprints with product analysts, balancing new data products against strict morning delivery deadlines.",
+   "bullets": [
+    "Design batch and streaming pipelines in Apache Spark on AWS EMR that process viewing events for recommendation and royalty reporting teams.",
+    "Built a Kafka ingestion layer that lands playback and ad events in S3 within minutes, replacing nightly file drops so content teams see audience trends the same day.",
+    "Model subscriber, title and viewing facts in Snowflake with dbt, publishing tested marts that finance and marketing analysts query directly.",
+    "Orchestrate daily content, ads and finance workflows in Apache Airflow with retries, data-quality gates and SLA alerts, cutting the manual reruns the on-call engineer used to make each morning.",
+    "Tuned Spark joins and partitioning to shorten the nightly royalty run.",
+    "Codify AWS infrastructure for the data platform in Terraform modules, with plans reviewed in pull requests before any change reaches production.",
+    "Set up GitHub Actions pipelines that run dbt tests and Python unit tests on every merge, blocking broken models before deployment.",
+    "Added Great Expectations checks on incoming partner feeds and routed failures to Datadog, giving analysts a clear signal when a late or malformed file would affect the morning dashboards.",
+    "Mentor junior engineers through code reviews and pairing on Spark jobs.",
+    "Partner with data governance leads to tag sensitive subscriber columns in Snowflake and apply masking policies by role.",
+    "Wrote Python utilities that backfill historical viewing data after source corrections.",
+    "Reworked the royalty data model with finance after a contract change, adding rights windows and territory rules that kept partner statements accurate from the first payment cycle under the new terms."
+   ],
+   "stack": "Apache Spark, AWS, EMR, Kafka, S3, Snowflake, dbt, Apache Airflow, Terraform, GitHub Actions, Python, Great Expectations, Datadog, data governance"
+  },
+  {
+   "header": "Fabrikam Telecom | Data Engineer | Jun 2020 - Jan 2023",
+   "domain": "Telecom / Billing and Network Data",
+   "usecase": "Billing, usage and network data for a regional carrier moved from on-premises Teradata into Snowflake to serve finance, care and network operations reporting. A blended onshore and offshore team ran the migration while month-end close and daily outage reporting continued.",
+   "bullets": [
+    "Migrated billing and usage reporting from an on-premises Teradata warehouse to Snowflake, rebuilding the loads in PySpark and reconciling totals with finance until month-end figures matched.",
+    "Built AWS Glue jobs that standardized call detail records from regional switches before they landed in the warehouse.",
+    "Applied dimensional modeling to subscriber churn and network quality data, giving care and network teams one shared definition of an active line.",
+    "Streamed network alarm events through Kafka into Redshift for near real-time outage dashboards, which let operations staff spot failing cell sites before customer complaints reached the call center.",
+    "Scheduled PySpark and SQL jobs in Apache Airflow with dependency checks.",
+    "Containerized ingestion jobs with Docker and deployed them through Jenkins CI/CD pipelines that ran unit tests on every build.",
+    "Tuned slow Snowflake queries behind the billing dashboards by reworking clustering keys and pruning unused joins.",
+    "Published Tableau extracts for churn and usage trends used in quarterly reviews.",
+    "Wrote Python validation scripts that compared row counts and revenue totals with source systems after each load, holding back reports when a feed arrived incomplete.",
+    "Documented pipeline runbooks, recovery steps and escalation paths in Confluence so the offshore support team could resolve failed loads alone.",
+    "Retired legacy Teradata BTEQ scripts after cutover, archiving their logic and outputs for audit and keeping read-only access until finance signed off on a full quarter of Snowflake results."
+   ],
+   "stack": "Teradata, Snowflake, PySpark, AWS Glue, Kafka, Redshift, Apache Airflow, SQL, Docker, Jenkins, CI/CD, Tableau, Python, Confluence, dimensional modeling, runbooks"
+  },
+  {
+   "header": "Northwind Systems | Data Engineer | Aug 2018 - May 2020",
+   "domain": "Supply Chain / Logistics Data",
+   "usecase": "A logistics data platform on SQL Server gave planners daily views of shipments, inventory and carrier performance across distribution centers. The role belonged to a small data team supporting operations, finance and procurement users.",
+   "bullets": [
+    "Built Python ETL jobs that loaded shipment, inventory and carrier data into SQL Server for logistics planners.",
+    "Moved warehouse scan files from FTP drops to Azure Blob Storage with scheduled ingestion, letting planners see stock levels by early morning instead of waiting for the afternoon batch.",
+    "Wrote SQL stored procedures that calculated on-time delivery by carrier.",
+    "Developed Power BI reports on fill rates and late shipments, replacing spreadsheets that regional managers rebuilt by hand each week.",
+    "Automated daily file checks with Bash and Python, alerting the team when a distribution center missed its upload window.",
+    "Introduced Git and Jenkins builds for the ETL code base, giving the team versioned releases and a repeatable path from test to production in place of copying scripts between servers.",
+    "Profiled carrier reference data and removed duplicate vendor records before loads.",
+    "Collaborated with planners and finance analysts to define inventory metrics and document the source tables behind each one.",
+    "Partitioned large shipment history tables in SQL Server, keeping monthly carrier scorecards fast as the data grew."
+   ],
+   "stack": "Python, SQL Server, SQL, Azure, Azure Blob Storage, Power BI, Bash, Git, Jenkins"
+  },
+  {
+   "header": "Woodgrove Bank | ETL Developer | Jan 2016 - Jul 2018",
+   "domain": "Banking / Risk and Regulatory Reporting",
+   "usecase": "An Oracle reporting warehouse supplied loan, deposit and capital figures to risk and regulatory reporting teams at a retail bank. Releases followed strict change windows, and audit requirements shaped how every load was tested and documented.",
+   "bullets": [
+    "Developed Informatica PowerCenter mappings that loaded loan and deposit data into an Oracle reporting warehouse each night.",
+    "Rebuilt the regulatory capital extract with tuned SQL and staged lookups, bringing the overnight batch back inside its window and giving the risk office its numbers before the morning review.",
+    "Scheduled batch chains in Control-M with restart points after each stage.",
+    "Wrote Unix shell scripts that validated incoming files from upstream banking systems and rejected incomplete deliveries.",
+    "Supported quarterly audits by tracing report figures back to source tables and documenting each transformation step.",
+    "Masked customer identifiers in test copies of the Oracle warehouse.",
+    "Partnered with business analysts to translate regulatory reporting rules into tested mapping specifications, cutting the number of late corrections raised by the finance team at each quarter close.",
+    "Converted manual reconciliation spreadsheets into SQL checks that ran after each load and emailed exceptions to the operations desk."
+   ],
+   "stack": "Informatica PowerCenter, Oracle, SQL, Control-M, Unix shell"
+  },
+  {
+   "header": "Tailspin Health | Data Analyst | Jun 2014 - Dec 2015",
+   "domain": "Healthcare / Claims Reporting",
+   "usecase": "Claims and member data in SQL Server fed weekly operational reporting for a regional health plan. Early-career tasks centered on reporting, data cleanup and learning the claims process.",
+   "bullets": [
+    "Wrote SQL queries against SQL Server claims tables to produce weekly reports on denial rates and payment delays.",
+    "Cleaned member and provider reference data before monthly reporting runs.",
+    "Built Excel and SSRS reports for claims operations managers, replacing manual counts with a refreshed view of pending claims by age and payer that supervisors used to plan staffing.",
+    "Traced reporting discrepancies to late eligibility files and documented each fix with the data engineers who owned the feeds.",
+    "Protected member data by following HIPAA rules for every extract.",
+    "Learned Python scripting to automate the weekly report refresh and the row-count checks that ran before it.",
+    "Joined weekly meetings with claims supervisors to agree report definitions, refresh timing and the filters each team needed, which cut the follow-up requests that used to arrive after every release."
+   ],
+   "stack": "SQL, SQL Server, Excel, SSRS, Python"
+  }
+ ]
+}

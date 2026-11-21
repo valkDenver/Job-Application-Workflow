@@ -68,7 +68,9 @@ Good to know:
 - Practice or answer questions during the call. Say `practice` for a mock screening, or give no Job ID for general answers without a tracker update. When the call ends, type `The call is finished.`; the Notes then record claims, rate and terms, right to represent, and what you owe the vendor.
 
 **Resume (Module 03)**: `Run Module 03 for JOB-1014.` [attach the tracker and your Candidate Profile]; can be done before or after the call.
-- It checks the matching technology folder first and reuses a resume scoring 85% or more by copying it into the job's folder; otherwise it builds a Word resume, runs `Tools/resume_check.py` on it until it passes, and shows the ATS score.
+- It checks the matching technology folder first and reuses a resume scoring 85% or more by copying it into the job's folder; otherwise it writes the resume content, renders a three-page Word resume in your chosen template with `Tools/resume_render.py`, runs `Tools/resume_check.py` on it until it passes, and shows the ATS score.
+- Resume look: set `Resume template:` in your Candidate Profile to classic, modern, compact, executive, two_line, banner, hanging, rail, grid or spotlight (blank = classic). See them in the `Resume Templates` folder (start with `00 - All templates at a glance.pdf`); `python Tools/resume_render.py templates` lists them. All are ATS-safe except hanging (section titles in Word frames) and grid (skills in a two-column table). The renderer fits every resume onto exactly three pages; it needs Microsoft Word (Windows) or LibreOffice to measure pages, and without them it renders at the template's normal size and says so. Each resume gets a `<name>.json` content file beside it, so a reused resume can be re-rendered in your current template.
+- Resumes are always Word files (.docx). Say `also make a PDF` when you run Module 03 if you want a PDF copy too; it is saved beside the Word file, and the tracker keeps pointing to the Word file.
 - Resumes are saved as `Documents/Job Application Workflow/Resumes/<Technology>/<Specialty>/<JOB-#### - Client (via Staffing company)>/<Name>_<Position title>.docx`, the same way on Windows and Mac.
 - Only technology folders in `Tools/resume_categories.json` are searched for reuse. If you made folders yourself, or the list was reset, run `python Tools/resume_path.py sync` once (`python3` on a Mac): it adds every folder already in your Resumes folder to the list, and never moves or deletes anything. A batch run does this for you.
 - Industry-fit check: before writing anything it checks that at least one of your employers' industries can realistically use the job's core tools. If none can, it stops and records "Resume not generated" in the tracker Notes instead of inventing experience.
@@ -141,7 +143,10 @@ Double-click `Start Tracker Viewer.bat` (Mac: `Start Tracker Viewer.command`; if
 | `Tools/contact_clean.py` | The one definition of a clean Recruiter Name, Email and Phone cell. `python Tools/contact_clean.py --selftest` checks it |
 | `Tools/email_check.py` | Plans an email batch and checks each email (years claim, JD tools, word count, variety). Without it Module 04 checks by hand |
 | `Tools/resume_path.py` | Chooses the resume folder, saves the resume, finds and copies reusable resumes, lets Module 04 find a job's resume file |
-| `Tools/resume_check.py` | Checks the finished Word resume: layout, bullets, wording rules, tool limits, word count, ATS score. Without it Module 03 checks by hand |
+| `Tools/resume_render.py` | Builds the Word resume from Module 03's content file in the candidate's template, fitted to three pages |
+| `Resume Templates/` | Sample PDFs of every resume template with a made-up candidate, to help you choose. Rebuild them with `python Tools/resume_samples.py` after changing a template |
+| `Tools/resume_templates.json` | The resume templates (fonts, sizes, colours, spacing, layout). Add or adjust a template here, no code change needed |
+| `Tools/resume_check.py` | Checks the finished Word resume against its template: layout, bullets, wording rules, tool limits, word count, ATS score. Without it Module 03 checks by hand |
 | `Tools/resume_categories.json` | Your technology folders for resumes. Created from a starting list the first time a resume tool runs, then grows as Module 03 adds technologies; it is yours and not part of the repository. Edit it to rename a folder |
 
 ## Troubleshooting
