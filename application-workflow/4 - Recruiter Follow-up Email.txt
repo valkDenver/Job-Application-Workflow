@@ -208,7 +208,7 @@ Update the Master Job Tracker for that Job ID:
 - Notes: add the date the draft was created, the situation used ("Situation 2: called, no answer, no resume" and so on), and a short style tag for the version used (for example "Version B: detail opener, project-result fit, 'Thanks' sign-off") so later drafts can avoid repeating it. In Situations 2 and 3 also add "Resume NOT sent yet; send once the recruiter responds or picks up." Also add "Gmail thread <threadId>" using the threadId the draft tool returned (it stays the same after I send the draft), so a later follow-up can find the thread.
 - Follow-Up Date: in Situations 2 and 3, if the cell is empty, suggest a date 2 business days out and ask me before filling it.
 Do not set APPLIED. APPLIED means my resume has been submitted by any route: after I send a Situation 1 or Situation 4 email (resume attached), I can mark the job APPLIED myself; a Situation 2 or 3 email (no resume) is not an application.
-With the tool: python Tools/tracker_tool.py set "<tracker file>" JOB-#### --set "Pipeline Status=EMAIL DRAFTED" --email-drafted attached|none --note "<date, situation, style tag>" (use attached in Situations 1 and 4 and none in Situations 2 and 3; add --set "Follow-Up Date=YYYY-MM-DD" only after I agree to it). The tool never moves Pipeline Status backward. If you cannot run Python, set the status and Notes as above and also type the date in the Email Drafted Date column as YYYY-MM-DD (resume attached) or YYYY-MM-DD (no resume), adding that header at the end of the header row if the column is missing. If it says the workbook is open in Excel, ask me to save and close it, then repeat. If it says the job is SKIPPED or CLOSED, ask me first, then repeat with --confirmed-closed.
+With the tool: python Tools/tracker_tool.py set "<tracker file>" JOB-#### --set "Pipeline Status=EMAIL DRAFTED" --email-drafted attached|none --note "<date, situation, style tag, Gmail thread <threadId>>" (use attached in Situations 1 and 4 and none in Situations 2 and 3; add --set "Follow-Up Date=YYYY-MM-DD" only after I agree to it). The tool never moves Pipeline Status backward. If you cannot run Python, set the status and Notes as above and also type the date in the Email Drafted Date column as YYYY-MM-DD (resume attached) or YYYY-MM-DD (no resume), adding that header at the end of the header row if the column is missing. If it says the workbook is open in Excel, ask me to save and close it, then repeat. If it says the job is SKIPPED or CLOSED, ask me first, then repeat with --confirmed-closed.
 Then show me the draft (To, Subject, Body, attachment name or "no attachment") and remind me to review and send it from Gmail. Add one line per job: the years claim, the tools named, the word count and the check result (script OK, or checked by hand). If Verification Notes or Red Flags say the open status is unverified or the job may be closed, also remind me to confirm the role is still open before I send. In Situations 2 and 3, remind me that when the recruiter replies or picks up, I can run Module 04 again (Situation 1 or 4) to draft the email with the resume attached.
 
 10A. FOLLOW-UP MODE (SITUATION 5)
@@ -233,6 +233,7 @@ What to do for each job, in this order:
    c. They only acknowledge or say they will get back: draft nothing now. It counts as a response.
    d. The position is filled or closed, or they decline: draft nothing and suggest I mark the job CLOSED.
    e. Auto-reply, out of office or a bounce: report it and draft nothing (for a bounce, say the address may be wrong).
+   f. Whatever else the message says, if the recruiter writes that they submitted me to the client for this job (or sets up a client interview, which means they did): quote that sentence to me and ask "Mark JOB-#### as submitted on <date of their message>?". Only after my yes, add --submitted <that date, YYYY-MM-DD> to the tool call (the tool keeps a date already there). Never mark it from my own emails or from a vague "I'll share your profile".
 4. The recruiter has not written since my last sent email: write the no-response follow-up below, unless the cap is reached.
 Cap: while the recruiter has never replied in that conversation, at most 2 follow-ups (the first email plus 2 follow-ups is 3 messages from me in a row). When the cap is reached, say so, draft nothing, and suggest calling or closing the job. Once the recruiter has replied at any time there is no cap, and the count restarts after their last reply. Take the larger of the follow-ups you count in the thread and the highest "Follow-up #n" in the job's Notes (a combined email sits in one job's thread but is noted on every job it covers).
 No-response follow-up:
@@ -252,6 +253,7 @@ Several jobs, one recruiter: draft ONE email in the newest thread, name the role
 After drafting:
 - Notes line for each job covered: "<date>: Follow-up #<n> (<no reply | resume sent | answered question>): Version <X>, <ask type>, Gmail thread <threadId>", where n counts my follow-ups in the thread.
 - Pipeline Status stays as it is (never set FOLLOW-UP in this mode). Email Drafted Date stays as it is, except when the follow-up attaches the resume: then add --email-drafted attached to the tool call.
+- Email Sent Date: whenever the job's thread holds my first email for this job as a SENT message (not a draft), add --email-sent <the date of that first sent message, YYYY-MM-DD in my time zone> to the tool call; the tool keeps a date already there. Do this also for a job where you draft nothing (cases 3a to 3e and the cap): run the tool with only --email-sent. Never for case 1 (still a draft) or case 2 (nothing sent found).
 - Follow-Up Date: ask once for the whole batch (for example "set the next follow-up to <date>?") and fill it only after I agree.
 - Tool: python Tools/tracker_tool.py set "<tracker file>" JOB-#### --note "<the Notes line>" (add --set "Follow-Up Date=YYYY-MM-DD" only after I agree). If the job is SKIPPED or CLOSED the tool refuses; ask me first.
 - Finish with a short list, one line per job: what you drafted, or why you drafted nothing. Remind me to review and send from Gmail.
@@ -265,10 +267,23 @@ After drafting:
 - Answer questions only from facts recorded in my Candidate Profile or the call claims in Notes. Never guess.
 - Search narrowly (Section 10A). Never repeat or summarize unrelated personal mail.
 
+10C. CHECK MY SENT EMAILS (when I ask "check my sent emails" or "which emails did I send?")
+Records which drafted emails I have actually sent. Drafts nothing; reads Gmail only.
+1. Run python Tools/tracker_tool.py unsent "<tracker file>". It lists the jobs with an Email Drafted Date and no Email Sent Date, grouped by recruiter, with the Gmail thread of each job's first email when Notes records it. At most 10 recruiters per run; if there are more, say so.
+2. For each recruiter, ONE search: in:sent to:<recruiter email> after:<earliest Email Drafted Date of their listed jobs minus 1 day>, pageSize 10, metadata and snippets first. Follow Section 10A's reading rules (decide who wrote a message from its sender address, count only messages from me to the recruiter, dedupe by message ID). Skip my own addresses and shared inboxes as Section 10A says.
+3. Match each JOB on its own, never the recruiter as a whole (one recruiter can have emails about several jobs):
+   - The job has a Gmail thread: it is sent when that thread holds a message from me to the recruiter. Its send date is the date of my first such message. If the thread cannot be read, use the next rule.
+   - No thread recorded (older drafts): a sent message from me whose subject contains this job's title and that was sent on or after this job's Email Drafted Date. If two listed jobs of the same recruiter have the same title and no thread, do not guess: list both with the message's subject and date and ask me which job it was.
+   - A combined email that names several jobs (Section 10A, "Several jobs, one recruiter") counts for each job it names.
+   - Only a draft, or nothing found: not sent.
+4. Record each sent job: python Tools/tracker_tool.py set "<tracker file>" JOB-#### --email-sent YYYY-MM-DD (my time zone). The tool keeps a date already there. If it says the workbook is open in Excel, ask me to close it, then repeat.
+5. Finish with two short lists: sent (Job ID, title, date) and still not sent (Job ID, title, drafted date, "still a draft" or "not found: maybe sent from another account"). Remind me that I send or delete drafts myself. Never send, edit or delete a draft.
+
 11. FINAL OPERATING PRINCIPLE
 The purpose of this module is:
 READ JOB ID → ASK THE SITUATION → CHECK → DRAFT EMAIL IN GMAIL (RESUME ONLY AFTER CONTACT) → UPDATE TRACKER → STOP
-In follow-up mode: FIND THE JOBS → READ THE THREAD → DECIDE WHO WROTE LAST → DRAFT ONE REPLY IN THE THREAD (OR EXPLAIN WHY NOT) → UPDATE NOTES → STOP
+In follow-up mode: FIND THE JOBS → READ THE THREAD → DECIDE WHO WROTE LAST → DRAFT ONE REPLY IN THE THREAD (OR EXPLAIN WHY NOT) → UPDATE NOTES AND THE SEND DATE → STOP
+Checking sent emails: LIST THE UNSENT JOBS → ONE SEARCH PER RECRUITER → MATCH EACH JOB BY ITS THREAD (OR TITLE AND DATE) → RECORD THE SEND DATES → STOP
 I review and send the email myself.
 
 12. RUNNING OUTSIDE CLAUDE CODE (a chat tool with no files, Python or Gmail)

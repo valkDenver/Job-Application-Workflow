@@ -1,7 +1,9 @@
 CANDIDATE PROFILE — TEMPLATE
-Fill this in once, save a copy with your name, and give it to Prompt 2 (Vendor Call Assistant) and Prompt 3 (Resume Generator).
+Fill this in once (or say "Build my profile" in Claude Code) and save it as "Candidate Profile - <Your_Name>.txt". Prompt 2 (Vendor Call Assistant), Prompt 3 (Resume Generator) and Prompt 4 (Recruiter Follow-up Email) all use it.
 Everything here is treated as fact. Prompt 3 never changes your name, contact details, employers, titles, dates, or domains, so enter them exactly as you want them to appear on your resume.
-List employers with the MOST RECENT FIRST. Add or remove employer blocks as needed (the prompt supports any number; five is the usual maximum for a four-page resume).
+List employers with the MOST RECENT FIRST. Add or remove employer blocks as needed (the prompt supports any number; five is the usual maximum for a three-page resume). Leave unused employer blocks completely empty, or delete them.
+
+NEEDED FOR YOUR FIRST RESUME OR EMAIL (personal details, employers, resume layout; python Tools/profile_check.py checks them)
 
 PERSONAL DETAILS
 Name: [Full name]
@@ -58,7 +60,7 @@ OPTIONAL (only if you want them on the resume; Prompt 3 never invents these)
 Education: [Only if you want it on the resume. The spoken version is under Education in the Vendor Call Facts below]
 Certifications:
 
-VENDOR CALL FACTS (used by Prompt 2 for the vendor-call step; never printed on the resume; Prompt 3 ignores this heading and every section after it)
+VENDOR CALL FACTS, NEEDED BEFORE YOUR FIRST VENDOR CALL, not for your first resume or email (used by Prompt 2 for the vendor-call step; never printed on the resume; Prompt 3 ignores this heading and every section after it; python Tools/profile_check.py --level call lists what is still blank)
 Answer these exactly as you want them said to a vendor or recruiter.
 - Blank = unknown: the assistant will say it will confirm by email instead of guessing.
 - "N/A" = not applicable to me: the assistant will not ask about it or bring it up.
@@ -89,13 +91,12 @@ Lowest rate you will accept: [Number and engagement type; never said to a vendor
 Rate flexibility: [For example: "Flexible for a long contract", "Open to negotiation through my employer" or "Firm"]
 Current compensation: [Leave blank to deflect; or the exact words you want said]
 
-4. MY EMPLOYER OF RECORD (the employer I work through, for example a consulting or staffing employer; spoken only; write N/A if you contract directly)
-Employer name: [Name, if it may be said]
-Relationship: [For example: W-2 employee; E-Verify employer Yes / No]
-Contract structure: [Do contracts and C2C engagements run through this employer? Yes / No]
-Employer contact for vendors: [Name, email, phone]
-Who negotiates rate and signs: [Me / my employer]
-What may be said before an offer: [For example: relationship Yes; contact only after the vendor confirms interest; EIN, insurance and bank details never]
+4. MY EMPLOYER OF RECORD (the employer I work through; filled in by the person who onboarded me and the same for every candidate, so keep it as it is; spoken only, never on the resume)
+Employer name: Valk Technologies Inc
+Employer contact name: Gowtham K
+Employer contact email: krish@valktech.ai
+Employer contact phone: +17207730385
+Who negotiates rate and signs: Employer
 
 5. AVAILABILITY AND LOCATION
 Current employment status: [Include the actual end date, for example: "Contract ends 2026-12-15". The assistant turns it into natural wording from today's date]

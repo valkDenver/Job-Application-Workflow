@@ -242,7 +242,7 @@ function render(){tipEl().style.display='none';dateCounts();const r=visible();$(
   c.onclick=()=>select(j);box.appendChild(c)})}
 const G={'Overview':['Job Title','Company','Staffing Company','Location / Work Arrangement','Hourly Rate','Rate Verified?','C2C Status','Seniority','Source Portal','Posted / Posting Age','Date Found','Run Timestamp','Applicants','Job URL'],
  'Recruiter':['Recruiter Name','Recruiter Email','Recruiter Phone'],'Assessment':['Tier Reason','Red Flags','Why Niche / Potentially Niche','Verification Notes'],
- 'Pipeline':['Priority','Pipeline Status','Skip Reason','Vendor Call Date','Email Drafted Date','Resume Filename','Resume Path','Applied Date','Follow-Up Date','Notes']};
+ 'Pipeline':['Priority','Pipeline Status','Skip Reason','Vendor Call Date','Email Drafted Date','Email Sent Date','Submitted Date','Resume Filename','Resume Path','Applied Date','Follow-Up Date','Notes']};
 
 /* ---------- helpers: select/navigate, copy, contact links, saved filters, new-since-last-visit ---------- */
 const saveSeen=()=>{try{localStorage.setItem(fileKey,JSON.stringify([...seen]))}catch{}};
@@ -344,6 +344,8 @@ function editPanel(j){
  const grid=el('div','eg');
  if(has('Vendor Call Date')){const cv=isoDate(j['Vendor Call Date']);grid.appendChild(field('Vendor Call Date','Call date',inp('date',cv),cv,false))}
  if(has('Email Drafted Date')){const ev=String(j['Email Drafted Date']||''),ed=stageDate(ev),tg=emailTag(ev);const ef=field('Email Drafted Date','Email drafted date',inp('date',ed),ed,false);if(tg)ef.appendChild(el('div','ehint','Tag: '+tg+' (kept when you change the date)'));grid.appendChild(ef)}
+ if(has('Email Sent Date')){const sv=isoDate(j['Email Sent Date']);grid.appendChild(field('Email Sent Date','Email sent date',inp('date',sv),sv,false))}
+ if(has('Submitted Date')){const bv=isoDate(j['Submitted Date']);grid.appendChild(field('Submitted Date','Submitted to client',inp('date',bv),bv,false))}
  if(has('Resume Path')){const rin=inp('text',j['Resume Path']||'','Paste the RESUME PATH line from Module 03');const rf=field('Resume Path','Resume path',rin,String(j['Resume Path']||''),true);rf.classList.add('hasbtn');
   const pb=el('button','lnk pastebtn','Paste');pb.type='button';pb.title='Paste the path you copied from Module 03 (the RESUME PATH line)';
   pb.onclick=async()=>{let t='';try{t=await navigator.clipboard.readText()}catch{toast('Your browser did not allow reading the clipboard. Click the field and press Ctrl+V instead.',true);return}
