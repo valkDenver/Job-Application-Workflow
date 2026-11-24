@@ -29,7 +29,7 @@ Then say: **"Set up Dice auto apply. Follow 5 - Dice Auto Apply.txt."** (Claude 
 1. checks your computer and, with your OK, installs what's missing (including the right Python version),
 2. opens Chrome so you can **log in to Dice yourself**. The script never sees your password.
 3. shows the defaults (**150 applications a day**, Monday to Friday, 05:00–22:00, normal pace) and changes any you want,
-4. asks the common screening questions (work authorization, rate, relocation…) and saves your answers,
+4. asks the common screening questions (work authorization, rate, relocation…), offering the answers already in your Candidate Profile for you to confirm, and saves your answers,
 5. runs a 1–2 job **test** so you can watch the browser once.
 
 **Mac:** if the `.command` file won't open, run this once in Terminal: `chmod +x "Dice Auto Apply.command"`.

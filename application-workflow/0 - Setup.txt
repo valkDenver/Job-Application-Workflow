@@ -1,0 +1,29 @@
+SETUP: JOB APPLICATION WORKFLOW (one time)
+
+I say: "Set up the workflow. Follow 0 - Setup.txt." You are Claude Code, opened in the application-workflow folder. I may not be technical: use plain words, do one step at a time, say in one line what you are about to do, and wait for me where a step says so. Every command runs from this folder; on a Mac use python3 instead of python, and on Windows try py if python is not found.
+
+1. CHECK. Run python Tools/setup_check.py and show me its OK and FIX lines as a short list. If Python itself is missing, stop: tell me to install Python 3 from python.org (on Windows tick "Add to PATH"), start a new conversation here and say the setup line again.
+
+2. PACKAGES. If packages are missing, ask for my OK, then run python Tools/setup_check.py --fix. It installs only what requirements.txt lists. If pip fails, show me the last lines of its error and stop.
+
+3. WORD OR LIBREOFFICE. If that line says FIX, tell me in one sentence: resumes still work, but they are not fitted to exactly three pages until I install Microsoft Word (Windows) or LibreOffice (Mac, free from libreoffice.org). It is optional; go on.
+
+4. PROFILE. If I have no Candidate Profile yet, ask whether I want to build it now (recommended: it is needed for every resume and email; it takes a while, and a current resume makes it quicker) or later. Now: follow "0b - Profile.txt", then come back to step 5. Later: tell me to say "Build my profile" when I am ready, and go on.
+
+5. TRACKER (required: my tracker must be in my Google Drive and shared with valktech.den@gmail.com). The person who onboarded me follows my progress from it (view only; I stay the only one who changes it). Find my Google Drive folder on this computer (Google Drive for desktop: usually "G:\My Drive" on Windows or "~/Library/CloudStorage/GoogleDrive-<account>/My Drive" on a Mac). If Drive for desktop is not installed, stop this step: tell me to install it from google.com/drive/download, sign in with my Google account, and then say the setup line again. Never create or keep my tracker anywhere else.
+   - If I already have my own tracker, ask for its file name or path. If it is not in my Drive folder, it must move to "<My Drive>/Job Application Workflow/": ask me to close it in Excel, then move it (with my yes). Then run python Tools/setup_check.py --tracker "<my tracker>" --fix, which checks it and saves its location in tracker_path.txt (the tracker viewer and Dice read it from there).
+   - Otherwise create a new one: create the folder "<My Drive>/Job Application Workflow" if it is missing, take my name from the Name line of my Candidate Profile if I already have one with Name filled in, else ask me for it, and run python Tools/tracker_tool.py init --name "<my name>" --folder "<My Drive>/Job Application Workflow". It copies the template (which stays unchanged) to "Master Job Tracker - <My_Name>.xlsx" there, with underscores instead of spaces in the name, removes the EXAMPLE rows and saves the location in tracker_path.txt. If it says the file already exists, that is my tracker: use the setup_check command above instead.
+   - Then tell me to share that one file (not the folder) with valktech.den@gmail.com as Viewer: in Google Drive on the web, right-click the file > Share, add valktech.den@gmail.com, set Viewer, Send. This is required; wait until I say it is done, and do not finish setup without it.
+   Never use the shared feed file, a "Job Feed - ..." file or anyone's LIVE tracker as my tracker. Repeat until setup_check's tracker line says OK.
+
+6. GMAIL. Module 04 uses Gmail to create drafts and check my sent mail; it never sends. If you have Gmail tools available, say Gmail is connected. If not, tell me to connect it in Claude (Customize > Connectors > Gmail) and start a new conversation afterwards. It is optional: without it Module 04 shows the email text for me to paste.
+
+7. JOBS. My jobs come from the job feed: the person who runs it shares my feed file and gives me a starting Job ID. If I have both, ask where the feed file is on my computer (the README's "Get jobs from the shared feed" says how to keep it synced), check that my tracker is closed in Excel, and run python Tools/tracker_tool.py import-feed "<my tracker>" --feed "<feed file>" --after <my starting Job ID>; tell me its result line. If not, tell me to say "Import my new jobs" once I have them.
+
+8. FINISH. Run python Tools/setup_check.py once more. When it says "All good." (a Word or LibreOffice FIX is fine, and so is a profile FIX if I chose to build it later: remind me to say "Build my profile" before my first resume or email; the tracker must be OK and in Google Drive, and I must have confirmed sharing it with valktech.den@gmail.com), tell me setup is done and give me my first steps and the commands I will use: open the tracker viewer with "Start Tracker Viewer.bat" (Windows) or "Start Tracker Viewer.command" (Mac); /get-jobs after each feed update; /call-prep JOB-#### before a vendor call; /build-resume JOB-#### for a resume; /email-draft JOB-#### for the recruiter email; /email-sent and /email-follow-up later; /my-progress to see how I am doing; /check-setup if something seems wrong. Type / in Claude Code to see them all.
+
+RULES
+- Install nothing except through setup_check.py --fix, and only after my OK.
+- Create or change only these files: my tracker (through tracker_tool.py init and import-feed, or moving it into my Drive folder with my yes), the "Job Application Workflow" folder in my Drive, my Candidate Profile (through "0b - Profile.txt"), tracker_path.txt and feed_path.txt. Only read the feed file. Never edit the TEMPLATE files, the prompts, the README or anything in Tools.
+- Never print or paste my tracker or my profile back into the conversation, and never put my personal details in any other file.
+- If a step fails twice, say what failed in plain words and what I can do, and stop.

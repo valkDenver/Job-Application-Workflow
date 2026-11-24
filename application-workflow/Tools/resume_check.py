@@ -487,15 +487,25 @@ def check_text_rules(emps):
             add("FAIL", "style", f"connecting phrase '{c.strip(chr(92) + 'b')}' used in {n} bullets (limit 2)")
 
 
-def check_profile(path, paras, emps):
-    txt = open(path, encoding="utf-8", errors="ignore").read()
+def profile_expectations(path):
+    """(name, contact line, ['Employer | Title | Dates', ...]) from the Candidate Profile, read by profile_check.py's parser: a blank
+    field stays blank (it never takes the next line), "[...]" template text counts as blank, and unused employer blocks are ignored."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import profile_check
+    p = profile_check.read(path)
 
     def field(label):
-        m = re.search(r"^\s*" + re.escape(label) + r":\s*(.+)$", txt, re.M)
-        return m.group(1).strip() if m else ""
+        v = p["fields"].get(label, "")
+        return "" if profile_check.is_placeholder(v) else v
     contact = " | ".join(x for x in (field("Location"), field("Phone"), field("Email"), field("LinkedIn")) if x)
-    if paras and paras[0].text.strip() != field("Name"):
-        add("FAIL", "profile", f"name differs from the profile ({field('Name')})")
+    want = [f'{e.get("Employer / client name", "")} | {e.get("Job title", "")} | {e.get("Dates", "")}' for e in p["employers"]]
+    return field("Name"), contact, want
+
+
+def check_profile(path, paras, emps):
+    name, contact, want = profile_expectations(path)
+    if paras and paras[0].text.strip() != name:
+        add("FAIL", "profile", f"name differs from the profile ({name})")
     else:
         add("PASS", "profile", "name matches")
     parts = lambda s: [x for x in re.split(r"\s*[|•·]\s*", s.strip()) if x]  # templates may use • or · between items
@@ -504,10 +514,6 @@ def check_profile(path, paras, emps):
         add("FAIL", "profile", f"contact line differs; expected: {contact}")
     else:
         add("PASS", "profile", "contact line matches")
-    names = re.findall(r"^\s*Employer / client name:\s*(.+)$", txt, re.M)
-    titles = re.findall(r"^\s*Job title:\s*(.+)$", txt, re.M)
-    dates = re.findall(r"^\s*Dates:\s*(.+)$", txt, re.M)
-    want = [f"{a.strip()} | {b.strip()} | {c.strip()}" for a, b, c in zip(names, titles, dates)]
     got = [e["hdr_text"] for e in emps]
     if got != want:
         add("FAIL", "profile", f"employer headers differ from the profile.\n      expected: {want}\n      found:    {got}")

@@ -1,0 +1,29 @@
+BUILD MY CANDIDATE PROFILE
+
+I say: "Build my profile" (setup offers it too), or "Update my profile". You are Claude Code, opened in the application-workflow folder. The profile is the one file every module treats as fact about me, so be careful: copy facts exactly, never improve, round, guess or invent anything, and ask when something is unclear. Use plain words and do one section at a time.
+
+1. START. Look for my profile: a "Candidate Profile - <name>.txt" in this folder other than the TEMPLATE and TestSample files.
+   - If there is one, ask what I want to update (a section, an employer, my resume changed) and do only that, with the same rules and the same step 5 check.
+   - If there is none, you will create "Candidate Profile - <My_Name>.txt" from "Candidate Profile - TEMPLATE.txt" (the template stays unchanged): my name with underscores instead of spaces and plain letters, as in tracker file names. Keep every heading, label and line of the template; only fill in the values.
+
+2. RESUME (optional). Ask whether I have a current resume to start from, and its file name or path (.docx or .pdf). Never insist: many candidates do not have one ready.
+   - With a resume: read it. A PDF you can read directly; for a .docx run python -c "import docx,sys; d=docx.Document(sys.argv[1]); print('\n'.join([p.text for p in d.paragraphs]+[c.text for t in d.tables for r in t.rows for c in r.cells]))" "<file>" (python3 on a Mac). Take from it only what it states. Never copy, move or change the resume file.
+   - Without a resume: interview me, one section at a time, with the questions of step 3.
+
+3. FILL, in the template's order:
+   - PERSONAL DETAILS: Name, Location (as I want it printed), Phone, Email, LinkedIn (blank if none). Total experience: one sentence with my years and the areas I have worked in; count the years from my earliest start date to today, show me the count, and let me change the wording.
+   - EMPLOYERS, most recent first: Employer / client name, Job title and Dates exactly as written. Write dates as "Mon YYYY - Mon YYYY" or "Mon YYYY - Present"; if the resume uses another form (only years, 01/2020), show me the conversion and ask; never guess a month. If there are more than five employers, ask which five to keep. Domain: a few words naming the industry and kind of work.
+   - Domain guidance and Seniority notes for each employer: these are not facts on a resume, they guide Module 03 (which tools and areas fit this employer, and how senior to make the role sound). Draft them from the resume's bullets or my interview answers, marked DRAFT, and ask me to accept or change each one. The earliest role's Seniority notes must keep it an earlier-career position. Never claim a tool, industry or level the resume or my answers do not support.
+   - RESUME LAYOUT: ask which template I want (classic, modern, compact, executive, two_line, banner, hanging, rail, grid or spotlight); point me to the "Resume Templates" folder, starting with "00 - All templates at a glance.pdf". Blank means classic.
+   - OPTIONAL: Education and Certifications only if I want them printed on my resume. Education is also asked as a spoken answer under the Vendor Call Facts (1. BACKGROUND); fill that one only with my words.
+   - 4. MY EMPLOYER OF RECORD comes filled in by the person who onboarded me and is the same for every candidate: keep it exactly as it is, unless I say mine is different.
+   - The other Vendor Call Facts (background, authorization, rate, availability, standard answers, references) are not needed for my first resume or email. Ask whether I want to fill them now or later; Module 02 lists any that are blank before my first vendor call.
+
+4. CONFIRM. Before writing anything, show me what you will save, section by section, with every DRAFT marked, and list what stays blank. Write the file only after my yes; change anything I correct first.
+
+5. CHECK. Run python Tools/profile_check.py "<my profile>" and fix with me anything it lists, until it says "Ready for resumes and emails." If I filled in the Vendor Call Facts too, also run it with --level call and tell me in one line how many facts are still blank or stale (fine to leave for later). If setup sent me here, go back to the setup step that comes next.
+
+RULES
+- Every fact comes from my resume or my own words. Nothing else: not other candidates' profiles, not the TestSample file, not job descriptions.
+- Create or change only my "Candidate Profile - <name>.txt". Never edit the TEMPLATE, the prompts or anything in Tools, and never put my details in any other file.
+- Show my details only in the step 4 review; do not print the whole profile again afterwards.

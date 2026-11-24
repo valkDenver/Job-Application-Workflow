@@ -4,6 +4,7 @@ __pycache__/
 
 # Created while using the workflow (personal data: never commit)
 tracker_path.txt
+feed_path.txt
 *.seen.json
 *.bak-*.xlsx
 apollo_cache.json
@@ -25,6 +26,8 @@ dice-auto-apply/.pasted_line.txt
 
 # Local planning notes (not part of the repo)
 plans/
+# Internal reviews and designs: this repository is public
+docs/
 work_*/
 
 # Job-search (Module 01) and shared-feed publishing: kept local, not shared with candidates
