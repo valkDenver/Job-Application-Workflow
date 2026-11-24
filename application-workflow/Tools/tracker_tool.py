@@ -572,7 +572,7 @@ def activity(tracker, since, until):
                 n["resumes_reused"] += 1
             elif rest.startswith("follow-up #"):
                 n["followups"] += 1
-            elif rest.startswith("skipped by me"):
+            elif rest.startswith("skipped by me") and text(cell(r, "Pipeline Status")).upper() == "SKIPPED":  # not if reopened since
                 n["skipped"] += 1
         first = min([d for d in (call, em, applied) if d], default=None)
         if inside(first) and found and first >= found:
@@ -1536,7 +1536,8 @@ def cmd_import_feed(a):
     thm = header_map([c.value for c in tm[1]])
     t_id = need(thm, "Job ID", MASTER) + 1
     mine = {text(tm.cell(r, t_id).value).upper() for r in range(2, tm.max_row + 1)} - {""}
-    have_feed = [n for n in (job_no(x) for x in mine) if n is not None and n >= FEED_FIRST_ID]
+    mine_nos = {n for n in (job_no(x) for x in mine) if n is not None}  # matched by number, as get and list do (JOB-01047 = JOB-1047)
+    have_feed = [n for n in mine_nos if n >= FEED_FIRST_ID]
     if a.from_id or a.after_id:
         n = job_no(a.from_id or a.after_id)
         if n is None:
@@ -1561,8 +1562,7 @@ def cmd_import_feed(a):
         feed_max = max(feed_max or n, n)
         if n < floor:
             continue
-        jid = text(r[f_id]).upper()
-        if jid in mine:
+        if n in mine_nos:
             skipped += 1
             continue
         new.append((n, {h: (r[fhm[norm(h)]] if fhm[norm(h)] < len(r) else None) for h in feed_cols}))
@@ -1615,11 +1615,12 @@ def cmd_import_feed(a):
     jhm2 = header_map([c.value for c in tj[1]])
     j_idc = need(jhm2, "Job ID", JDS) + 1
     jrow = _last_job_row(tj, j_idc)
+    jd_have = {job_no(tj.cell(x, j_idc).value) for x in range(2, tj.max_row + 1)} - {None}  # descriptions already there are kept
     jstyle = {c: copy(tj.cell(jrow, c)._style) for c in range(1, tj.max_column + 1)} if jrow >= 2 else {}
     jd_added = 0
     for _, vals in new:
         rec = jd.get(text(vals["Job ID"]).upper())
-        if not rec:
+        if not rec or job_no(vals["Job ID"]) in jd_have:
             continue
         jrow += 1
         jd_added += 1

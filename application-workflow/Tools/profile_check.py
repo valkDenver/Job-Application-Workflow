@@ -34,38 +34,58 @@ def is_placeholder(v):
 def parse(txt):
     """{'fields': {label: value} for the lines outside employer blocks (first one wins), 'employers': [{label: value}, ...] for
     the employer blocks in use (all-empty blocks are dropped), 'call': [(section, label, value)] for the Vendor Call Facts part,
-    'placeholders': [label] left in the resume part}. Values never run onto the next line."""
+    'placeholders': [label] left in the resume part}. A blank field stays blank (it never takes the next field's line), but a value
+    may continue on the lines right below its label (the template invites "one per line" for Domain guidance and Where each job was
+    worked): those lines, up to a blank line, a heading or the next label, are joined to it with "; "."""
     fields, employers, call, placeholders = {}, [], [], []
     block, in_call, section = None, False, ""
+    target = None  # where the last label's value went, so the lines below it can continue it
+
+    def add_more(more):
+        kind, where, key = target
+        old = where[key][2] if kind == "call" else where[key]
+        new = more if not old or is_placeholder(old) else old + "; " + more
+        if kind == "call":
+            where[key] = (where[key][0], where[key][1], new)
+        else:
+            where[key] = new
     for raw in txt.splitlines():
         line = raw.strip()
-        if not line or line.startswith("-"):
+        if not line:
+            target = None
             continue
         if line.startswith("VENDOR CALL FACTS"):
-            in_call, block, section = True, None, "VENDOR CALL FACTS"
+            in_call, block, section, target = True, None, "VENDOR CALL FACTS", None
             continue
         if re.match(r"^EMPLOYER \d+\b", line) and not in_call:
-            block = {}
+            block, target = {}, None
             employers.append(block)
             continue
         if in_call and (re.match(r"^\d+\.\s+[A-Z]", line) or line.startswith("REFERENCES FOR")):
-            section = line.split("(")[0].strip()
+            section, target = line.split("(")[0].strip(), None
             continue
         if line.isupper() or line.startswith("CANDIDATE PROFILE"):  # PERSONAL DETAILS, RESUME LAYOUT, OPTIONAL...
-            block = None
+            block, target = None, None
             continue
-        m = LABEL.match(line)
+        m = LABEL.match(line) if not line.startswith("-") else None
         if not m:
+            if target is not None:  # a continuation line ("Healthcare", "- Sony: US remote, 2025 to now")
+                add_more(line.lstrip("-* ").strip())
             continue
         label, value = m.group(1).strip(), m.group(2).strip()
         if in_call:
             call.append((section, label, value))
+            target = ("call", call, len(call) - 1)
         elif block is not None and label in EMPLOYER_FIELDS:
             block[label] = value
+            target = ("dict", block, label)
         else:
-            fields.setdefault(label, value)
-            if value and is_placeholder(value):
-                placeholders.append(label)
+            if label in fields:  # only the first occurrence counts; do not continue a later one
+                target = None
+                continue
+            fields[label] = value
+            target = ("dict", fields, label)
+    placeholders = [k for k, v in fields.items() if v and is_placeholder(v)]  # after continuations, which can replace them
     used = []
     for b in employers:
         vals = [b.get(f, "") for f in EMPLOYER_FIELDS]
@@ -93,7 +113,7 @@ def month(s):
 
 def date_range(s):
     """(start, end or None for Present) or None."""
-    parts = re.split(r"\s+[-–—]\s+", s.strip())
+    parts = re.split(r"\s*[-–—]\s*|\s+to\s+", s.strip(), flags=re.I)  # "Jan 2020 - Mar 2023", "Jan 2020-Mar 2023", "Jan 2020 to Present"
     if len(parts) != 2:
         return None
     start = month(parts[0])
@@ -137,7 +157,7 @@ def check_resume(p, today=None):
         if d and not is_placeholder(d):
             r = date_range(d)
             if not r:
-                out.append(f'{who}: Dates "{d}" must look like "Jan 2020 - Mar 2023" or "Jan 2025 - Present"')
+                out.append(f'{who}: Dates "{d}" must look like "Jan 2020 - Mar 2023" or "Jan 2025 - Present" (month and year at both ends)')
             else:
                 start, end = r
                 if start > now or (end and end > now):

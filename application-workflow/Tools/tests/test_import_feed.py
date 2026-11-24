@@ -117,6 +117,23 @@ def test_columns_matched_by_name_and_progress_kept():
         check("missing feed column added at the end", rows["JOB-1001"].get("Feed Extra") == "x1001" and "Feed Extra" in out, out)
 
 
+def test_ids_by_number_and_existing_descriptions():
+    with tempfile.TemporaryDirectory() as d:
+        trk = make_tracker(d)
+        wb = openpyxl.load_workbook(trk)  # JOB-01002 typed with a leading zero, and a description of JOB-1003 copied by hand earlier
+        ws, jds = wb[T.MASTER], wb[T.JDS]
+        ws.append(["JOB-01002"] + [None] * (ws.max_column - 1))
+        jds.append(["JOB-1003", "Engineer 1003", "Copied by hand"])
+        wb.save(trk)
+        feed = make_feed(d, [1001, 1002, 1003])
+        rc, out = run(d, "import-feed", trk, "--feed", feed, "--from", "JOB-1001")
+        rows, _, jd = master(trk)
+        ids = [r["Job ID"] for r in rows]
+        check("JOB-01002 counts as JOB-1002 (no duplicate)", ids == ["JOB-01002", "JOB-1001", "JOB-1003"], ids)
+        check("an existing description is kept, not duplicated", jd["JOB-1003"] == "Copied by hand"
+              and sum(1 for r in openpyxl.load_workbook(trk)[T.JDS].iter_rows(min_row=2, values_only=True) if r[0] == "JOB-1003") == 1, out)
+
+
 def test_refusals():
     with tempfile.TemporaryDirectory() as d:
         trk = make_tracker(d)

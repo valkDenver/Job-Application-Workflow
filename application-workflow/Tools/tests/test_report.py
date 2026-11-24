@@ -75,6 +75,15 @@ def test_report_counts_a_period():
         check("bad period refused", rc == 2 and "after" in o, o)
 
 
+def test_reopened_skip_not_counted():
+    with tempfile.TemporaryDirectory() as d:
+        p = tracker(d, [{"Job ID": "JOB-1001", "Pipeline Status": "REVIEW",
+                         "Notes": "2026-11-19: Skipped by me (was REVIEW): rate\n\n2026-11-19: Reopened by me (was skipped)"},
+                        {"Job ID": "JOB-1002", "Pipeline Status": "SKIPPED", "Notes": "2026-11-19: Skipped by me (was REVIEW): visa"}])
+        rc, o = run(d, "report", p, "--since", "2026-11-19", "--until", "2026-11-19", "--json")
+        check("only jobs still skipped are counted", json.loads(o)["skipped"] == 1, o)
+
+
 def test_set_note_is_dated():
     with tempfile.TemporaryDirectory() as d:
         p = tracker(d, [{"Job ID": "JOB-1001", "Pipeline Status": "REVIEW"}])

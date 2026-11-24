@@ -3,7 +3,7 @@ temporary folder.
 
   python Tools/tests/test_profile_check.py      prints "all tests passed"
 """
-import datetime as dt, os, sys, tempfile
+import datetime as dt, os, re, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOOLS = os.path.dirname(HERE)
@@ -124,6 +124,25 @@ def test_call_level():
     check("prefilled employer of record not listed", not any(x.startswith("Employer name") for x in blank), blank)
     blank, stale = P.check_call(P.parse(TEMPLATE), TODAY)
     check("missing confirmation date", any("missing" in x for x in stale), stale)
+
+
+def test_multi_line_values_and_date_forms():
+    txt = clean_unused(fill(TEMPLATE, three_employers()))
+    # Domain guidance written one area per line (the template invites it), and a dash-list under Where each job was worked
+    txt = txt.replace("Domain guidance: Telecom; data platforms", "Domain guidance:\nTelecom\nData platforms", 1)
+    txt = re.sub(r"Where each job was worked: \[[^\n]*\]", "Where each job was worked:\n- Acme: US remote\n- Beta: India", txt)
+    txt = txt.replace("Dates: Mar 2021 - Dec 2023", "Dates: Mar 2021-Dec 2023").replace("Dates: Jan 2024 - Present", "Dates: Jan 2024 to Present")
+    p = P.parse(txt)
+    check("one-per-line Domain guidance is read", p["employers"][0]["Domain guidance"] == "Telecom; Data platforms", p["employers"][0])
+    check("dash-list continuation is read", any(
+        lbl == "Where each job was worked" and v == "Acme: US remote; Beta: India" for _, lbl, v in p["call"]), p["call"][:6])
+    check("unspaced dash and 'to' dates pass", P.check_resume(p, TODAY) == [], P.check_resume(p, TODAY))
+    blank, _ = P.check_call(p, TODAY)
+    check("multi-line fact is not BLANK", not any(x.startswith("Where each job was worked") for x in blank), blank)
+    p2 = P.parse("PERSONAL DETAILS\nName: A B\nLinkedIn:\nTotal experience: 8 years\n")
+    check("a blank field still stays blank", p2["fields"]["LinkedIn"] == "" and p2["fields"]["Total experience"] == "8 years", p2["fields"])
+    p3 = P.parse("PERSONAL DETAILS\nName: A B\nEducation: [Only if you want it]\nB.Tech, 2016\n")
+    check("a continuation replaces template text", p3["fields"]["Education"] == "B.Tech, 2016" and "Education" not in p3["placeholders"], p3)
 
 
 if __name__ == "__main__":
