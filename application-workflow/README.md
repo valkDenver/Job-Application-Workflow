@@ -77,7 +77,7 @@ Good to know:
 
 ### Commands
 
-Type these in Claude Code's Code tab, opened in this folder (type `/` to see them all). They find your tracker and Candidate Profile themselves; you never type a file name.
+Type these in Claude Code's Code tab, opened in this folder (type `/` to see them all). They find your tracker and Candidate Profile themselves; you never type a file name. A plain sentence works too ("draft the email for JOB-1234"): Claude picks the matching command.
 
 | Command | What it does |
 |---|---|
@@ -191,7 +191,8 @@ Use them only when you cannot use Claude Code, and expect to do more by hand.
 | `Tools/setup_check.py` | Checks Python, packages, Word or LibreOffice, your tracker, your profile and the Resumes folder; `--fix` installs the packages and saves your tracker's location |
 | `2`–`4 - *.txt` | The three prompts |
 | `CLAUDE.md` | Points Claude Code at this README and the prompts when it opens this folder |
-| `.claude/commands/*.md` | The slash commands (`/setup`, `/get-jobs`, `/build-resume`...); each one follows the prompt or tool it names |
+| `.claude/skills/<name>/SKILL.md` | The commands (`/setup`, `/get-jobs`, `/build-resume`...), as Claude Code skills; each one follows the prompt or tool it names |
+| `.claude/settings.json` | Lets Claude Code run the workflow's checks and its routine, self-protecting updates (tracker updates that only move forward, importing new jobs, saving resumes) without asking each time. Editing a job by hand, skipping or reopening a job, deleting rows and one-time setup changes always ask. The tracker viewer is not affected |
 | `Master Job Tracker - TEMPLATE.xlsx` | Your tracker (Master Tracker, JD Store, Excluded Jobs, Dashboard) |
 | `Candidate Profile - TEMPLATE.txt` | Personal details, employers, vendor-call facts |
 | `Start Tracker Viewer.bat` / `.command` | Open the viewer with editing |
