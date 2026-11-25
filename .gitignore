@@ -16,6 +16,8 @@ Resumes/
 *.docx
 *.csv
 .trk_*
+# Claude Code's own "don't ask again" rules (can hold your tracker path); the shared rules are in .claude/settings.json
+**/.claude/settings.local.json
 Candidate Profile*.txt
 !Candidate Profile - TEMPLATE.txt
 ~$*

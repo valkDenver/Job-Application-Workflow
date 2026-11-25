@@ -1,4 +1,4 @@
-"""Tests for the slash commands in application-workflow/.claude/commands (T19): every command exists, has a description, and points
+"""Tests for the commands (Claude Code skills) in application-workflow/.claude/skills/<name>/SKILL.md (T19): every command exists, has a description, and points
 only to prompts, tools, tracker_tool subcommands, Module 04 sections and other commands that really exist; no name clashes with a
 Claude Code built-in command. Offline; reads files only.
 
@@ -9,7 +9,7 @@ import os, re, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOOLS = os.path.dirname(HERE)
 FOLDER = os.path.dirname(TOOLS)
-COMMANDS = os.path.join(FOLDER, ".claude", "commands")
+SKILLS = os.path.join(FOLDER, ".claude", "skills")
 sys.path.insert(0, TOOLS)
 import tracker_tool as T
 
@@ -26,7 +26,7 @@ def check(name, ok, detail=""):
 
 
 def read(name):
-    return open(os.path.join(COMMANDS, name + ".md"), encoding="utf-8").read()
+    return open(os.path.join(SKILLS, name, "SKILL.md"), encoding="utf-8").read()
 
 
 def subcommands():
@@ -51,7 +51,9 @@ def subcommands():
 
 
 def test_commands():
-    have = sorted(f[:-3] for f in os.listdir(COMMANDS) if f.endswith(".md"))
+    have = sorted(d for d in os.listdir(SKILLS) if os.path.isfile(os.path.join(SKILLS, d, "SKILL.md")))
+    check("no old .claude/commands folder (a skill and a command of the same name clash)",
+          not os.path.exists(os.path.join(FOLDER, ".claude", "commands")))
     check("exactly the expected commands", have == sorted(EXPECTED), have)
     subs = subcommands()
     check("tracker_tool subcommands found", {"import-feed", "summary", "report", "unsent"} <= subs, sorted(subs))
@@ -78,6 +80,53 @@ def test_commands():
             if other in ("hr",):  # "$/hr" style text is not a command
                 continue
             check(f"/{name} mentions /{other}, which exists", other in EXPECTED, other)
+
+
+# Writes Claude may run without asking (approved 2026-11-25): each tool protects the tracker or file itself
+# (status only forward, first dates kept, no Job ID added twice, no file overwritten except the resume being rendered).
+SAFE_WRITES = {"tracker_tool.py": {"set", "import-feed"}, "resume_render.py": {"render"},
+               "resume_path.py": {"path", "reuse", "list", "evidence set", "sync"}}
+# Always ask, even in auto mode: the candidate's decisions and one-time changes.
+MUST_ASK = ["tracker_tool.py " + s + " *" for s in ("edit", "skip", "reopen", "prune-excluded", "init", "add-columns", "extend-ranges")] \
+    + ["tracker_tool.py set *--confirmed-closed*", "setup_check.py *--fix*"]
+READS = {"tracker_tool.py": {"get", "list", "related", "followups", "drafted-notes", "summary", "report", "unsent", "skipped",
+                             "check-contacts", "next-id", "last-run", "recheck-list"},
+         "setup_check.py": {""}, "profile_check.py": {""}, "resume_check.py": {""}, "email_check.py": {"brief", "check", "batch"},
+         "resume_render.py": {"templates"}, "resume_path.py": {"categories", "find", "evidence get", "evidence list"}}
+
+
+def test_settings():
+    """.claude/settings.json: Claude runs the read-only scripts, the approved safe writes and the skills without asking; every
+    other write is not allowed, and the candidate's decisions (edit, skip, reopen...) always ask."""
+    import json
+    p = json.load(open(os.path.join(FOLDER, ".claude", "settings.json"), encoding="utf-8"))["permissions"]
+    subs = subcommands()
+    for rule in p["allow"]:
+        m = re.fullmatch(r"(?:Bash|PowerShell)\(python3? Tools[/\\]([a-z_]+\.py)(?: ([a-z-]+(?: [a-z]+)?))? \*\)", rule)
+        s = re.fullmatch(r"Skill\(([a-z-]+)(?: \*)?\)", rule)
+        check(f"allow rule has a known form: {rule}", bool(m or s), rule)
+        if m:
+            script, sub = m.group(1), m.group(2) or ""
+            check(f"{rule}: Tools/{script} exists", os.path.isfile(os.path.join(TOOLS, script)), script)
+            check(f"{rule}: a read or an approved safe write", sub in READS.get(script, set()) | SAFE_WRITES.get(script, set()), sub)
+            if script == "tracker_tool.py":
+                check(f"{rule}: tracker_tool.py {sub} exists", sub in subs, sub)
+        if s:
+            check(f"{rule}: skill exists", s.group(1) in EXPECTED, s.group(1))
+    # Bash rules do not cover Claude Code's PowerShell tool (the default on Windows): PowerShell has the same rules, with both
+    # path separators.
+    for shell, seps in (("Bash", "/"), ("PowerShell", "/\\")):
+        for sep in seps:
+            for py in ("python", "python3"):
+                for script, names in list(READS.items()) + list(SAFE_WRITES.items()):
+                    for sub in names:
+                        rule = f"{shell}({py} Tools{sep}{script}{' ' + sub if sub else ''} *)"
+                        check(f"{rule} is allowed", rule in p["allow"])
+                for r in MUST_ASK:
+                    rule = f"{shell}({py} Tools{sep}{r})"
+                    check(f"{rule} asks", rule in p.get("ask", []))
+    check("every skill is allowed", all(f"Skill({n})" in p["allow"] for n in EXPECTED))
+    check("nothing denied by accident", not p.get("deny"), p.get("deny"))
 
 
 if __name__ == "__main__":
