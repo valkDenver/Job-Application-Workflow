@@ -102,7 +102,7 @@ def test_settings():
     p = json.load(open(os.path.join(FOLDER, ".claude", "settings.json"), encoding="utf-8"))["permissions"]
     subs = subcommands()
     for rule in p["allow"]:
-        m = re.fullmatch(r"Bash\(python3? Tools/([a-z_]+\.py)(?: ([a-z-]+(?: [a-z]+)?))? \*\)", rule)
+        m = re.fullmatch(r"(?:Bash|PowerShell)\(python3? Tools[/\\]([a-z_]+\.py)(?: ([a-z-]+(?: [a-z]+)?))? \*\)", rule)
         s = re.fullmatch(r"Skill\(([a-z-]+)(?: \*)?\)", rule)
         check(f"allow rule has a known form: {rule}", bool(m or s), rule)
         if m:
@@ -113,13 +113,18 @@ def test_settings():
                 check(f"{rule}: tracker_tool.py {sub} exists", sub in subs, sub)
         if s:
             check(f"{rule}: skill exists", s.group(1) in EXPECTED, s.group(1))
-    for py in ("python", "python3"):
-        for script, names in list(READS.items()) + list(SAFE_WRITES.items()):
-            for sub in names:
-                rule = f"Bash({py} Tools/{script}{' ' + sub if sub else ''} *)"
-                check(f"{rule} is allowed", rule in p["allow"])
-        for r in MUST_ASK:
-            check(f"{py} Tools/{r} asks", f"Bash({py} Tools/{r})" in p.get("ask", []))
+    # Bash rules do not cover Claude Code's PowerShell tool (the default on Windows): PowerShell has the same rules, with both
+    # path separators.
+    for shell, seps in (("Bash", "/"), ("PowerShell", "/\\")):
+        for sep in seps:
+            for py in ("python", "python3"):
+                for script, names in list(READS.items()) + list(SAFE_WRITES.items()):
+                    for sub in names:
+                        rule = f"{shell}({py} Tools{sep}{script}{' ' + sub if sub else ''} *)"
+                        check(f"{rule} is allowed", rule in p["allow"])
+                for r in MUST_ASK:
+                    rule = f"{shell}({py} Tools{sep}{r})"
+                    check(f"{rule} asks", rule in p.get("ask", []))
     check("every skill is allowed", all(f"Skill({n})" in p["allow"] for n in EXPECTED))
     check("nothing denied by accident", not p.get("deny"), p.get("deny"))
 
