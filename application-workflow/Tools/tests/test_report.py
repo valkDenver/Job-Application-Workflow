@@ -75,6 +75,21 @@ def test_report_counts_a_period():
         check("bad period refused", rc == 2 and "after" in o, o)
 
 
+def test_resume_notes_count_on_their_date_wherever_it_sits():
+    with tempfile.TemporaryDirectory() as d:
+        p = tracker(d, [
+            {"Job ID": "JOB-1001", "Pipeline Status": "RESUME CREATED", "Notes": "Dice employment type: Contract | Resume generated 2026-11-17"},
+            {"Job ID": "JOB-1002", "Pipeline Status": "RESUME CREATED", "Notes": "Resume reused 2026-11-18 (Module 3 library check): copied from JOB-1001"},
+            {"Job ID": "JOB-1003", "Pipeline Status": "RESUME CREATED", "Notes": "2026-11-18 Resume reused from JOB-1001 (ATS 89%)"},
+            {"Job ID": "JOB-1004", "Pipeline Status": "RESUME CREATED", "Notes": "Reused JOB-1001 payroll resume (ATS ~98%)"},  # no date: not in a period
+            {"Job ID": "JOB-1005", "Pipeline Status": "CLOSED", "Notes": "Module 3 (2026-11-18): core requirement not on resume"},  # not a resume
+        ])
+        rc, o = run(d, "report", p, "--since", "2026-11-16", "--until", "2026-11-21", "--json")
+        n = json.loads(o)
+        check("dated resume notes in any position", (n["resumes_new"], n["resumes_reused"]) == (1, 2), (n["resumes_new"], n["resumes_reused"]))
+        check("resume_note", T.resume_note("Reused JOB-1001 payroll resume") == ("reused", None) and T.resume_note("not on resume") is None)
+
+
 def test_reopened_skip_not_counted():
     with tempfile.TemporaryDirectory() as d:
         p = tracker(d, [{"Job ID": "JOB-1001", "Pipeline Status": "REVIEW",

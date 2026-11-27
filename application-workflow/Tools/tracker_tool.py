@@ -526,6 +526,20 @@ def _day(v):
         return None
 
 
+RESUME_NOTE = re.compile(r"\bresume (generated|reused)\b|\breused\s+(from\s+)?(the\s+library|job-\d+)", re.I)
+
+
+def resume_note(line):
+    """("generated" | "reused", date or None) when a Notes line records a resume, else None. Module 03 writes these in several ways:
+    "2026-11-20: Resume generated", "Resume generated 2026-10-16", "Reused JOB-3067 ... resume" (no date). The date is the line's
+    first YYYY-MM-DD, wherever it sits; None when the line has none."""
+    m = RESUME_NOTE.search(line)
+    if not m:
+        return None
+    kind = "reused" if "reused" in m.group(0).lower() else "generated"
+    return kind, _day(line)
+
+
 def activity(tracker, since, until):
     """The report's numbers for since..until (both included), as a dict."""
     wb = open_read(tracker)
@@ -556,6 +570,11 @@ def activity(tracker, since, until):
         n["emails_sent"] += inside(_day(cell(r, SENT_COL)))
         n["submitted"] += inside(_day(cell(r, SUBMIT_COL)))
         for line in text(cell(r, "Notes")).splitlines():
+            res = resume_note(line)
+            if res:  # a resume note counts on its date wherever the date sits ("Resume generated 2026-10-16", "2026-11-12 Resume reused ...")
+                if inside(res[1]):
+                    n["resumes_reused" if res[0] == "reused" else "resumes_new"] += 1
+                continue
             m = NOTE_LINE.match(line.strip())
             if not m:
                 continue
@@ -566,11 +585,7 @@ def activity(tracker, since, until):
             if not inside(d):
                 continue
             rest = m.group(2).lower()
-            if rest.startswith("resume generated"):
-                n["resumes_new"] += 1
-            elif rest.startswith("resume reused"):
-                n["resumes_reused"] += 1
-            elif rest.startswith("follow-up #"):
+            if rest.startswith("follow-up #"):
                 n["followups"] += 1
             elif rest.startswith("skipped by me") and text(cell(r, "Pipeline Status")).upper() == "SKIPPED":  # not if reopened since
                 n["skipped"] += 1
